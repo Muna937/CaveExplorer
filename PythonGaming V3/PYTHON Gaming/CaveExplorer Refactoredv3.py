@@ -19,7 +19,7 @@ PURPLE=(80,0,80)
 # --- Screen Setup ---
 screen = pygame.display.set_mode((SCREEN_WIDTH , SCREEN_HEIGHT))
 pygame.display.set_caption("Dungeon Crawler")
-town_bg_image=pygame.image.load("unnamed.png").convert()
+town_bg_image=pygame.image.load("PythonGaming V3/PYTHON Gaming/unnamed.png").convert()
 # --- Fonts ---
 TITLE_FONT = pygame.font.Font("freesansbold.ttf", 64)
 BUTTON_FONT = pygame.font.Font("freesansbold.ttf", 36)
@@ -701,7 +701,7 @@ monster_data = {
         "accuracy": 0.65,  # Slightly increased from 0.6
         "evasion": 0.2,
         "monster_type": "greenskin",
-        "image_path": "Images/Goblin.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/Goblin.png",
         "attack_sound_path": "sounds/goblin_attack.wav"
     },
     "Rat": {
@@ -717,7 +717,7 @@ monster_data = {
         "accuracy": 0.75,  # Slightly increased from 0.7
         "evasion": 0.3,
         "monster_type": "beast",
-        "image_path": "Images/rat.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
     },
     "Big Rat": {
@@ -733,7 +733,7 @@ monster_data = {
         "accuracy": 0.7,
         "evasion": 0.25,   # Slightly increased from 0.2
         "monster_type": "beast",
-        "image_path": "Images/bigrat.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/bigrat.png",
         "attack_sound_path": "sounds/rat_attack.wav"
     },
     "Spider": {
@@ -749,7 +749,7 @@ monster_data = {
         "accuracy": 0.7,   # Slightly increased from 0.65
         "evasion": 0.45,   # Slightly increased from 0.4
         "monster_type": "beast",
-        "image_path": "Images/spider.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/spider.png",
         "attack_sound_path": "sounds/spider_attack.wav"
     },
     "Skeleton Warrior": {
@@ -765,7 +765,7 @@ monster_data = {
         "accuracy": 0.8,   # Slightly increased from 0.75
         "evasion": 0.15,
         "monster_type": "undead",
-        "image_path": "Images/skeleton_warrior.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/skeleton_warrior.png",
         "attack_sound_path": "sounds/skeleton_attack.wav"
     },
     "Giant Rat": {
@@ -781,7 +781,7 @@ monster_data = {
         "accuracy": 0.8,   # Slightly increased from 0.75
         "evasion": 0.3,    # Slightly increased from 0.25
         "monster_type": "beast",
-        "image_path": "Images/giant_rat.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/giant_rat.png",
         "attack_sound_path": "sounds/rat_attack.wav"
     },
     "Siren": {
@@ -797,7 +797,7 @@ monster_data = {
         "accuracy": 0.9,   # Slightly increased from 0.85
         "evasion": 0.35,   # Slightly increased from 0.3
         "monster_type": "fey",
-        "image_path": "Images/siren.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/siren.png",
         "attack_sound_path": "sounds/siren_attack.wav"
     },
     "Mimic": {
@@ -813,7 +813,7 @@ monster_data = {
         "accuracy": 0.75,  # Slightly increased from 0.7
         "evasion": 0.2,
         "monster_type": "construct",
-        "image_path": "Images/mimic.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/mimic.png",
         "attack_sound_path": "sounds/mimic_attack.wav"
     },
     "Orc": {
@@ -829,7 +829,7 @@ monster_data = {
         "accuracy": 0.85,  # Slightly increased from 0.8
         "evasion": 0.1,
         "monster_type": "greenskin",
-        "image_path": "Images/orc.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/orc.png",
         "attack_sound_path": "sounds/orc_attack.wav"
     },
     "Succubus": {
@@ -845,7 +845,7 @@ monster_data = {
         "accuracy": 0.85,  # Slightly increased from 0.8
         "evasion": 0.6,    # Increased from 0.5 - Even more evasive
         "monster_type": "fiend",
-        "image_path": "Images/succubus.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/succubus.png",
         "attack_sound_path": "sounds/succubus_charm.wav"
     },
     "Lich": {
@@ -861,7 +861,7 @@ monster_data = {
         "accuracy": 0.95,  # Increased from 0.9 - Very accurate magic
         "evasion": 0.2,
         "monster_type": "undead",
-        "image_path": "Images/lich.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/lich.png",
         "attack_sound_path": "sounds/lich_attack.wav"
     },
     "Dragon": {
@@ -877,7 +877,7 @@ monster_data = {
         "accuracy": 0.95,  # Increased from 0.9 - Dragons are precise with fire breath
         "evasion": 0.35,   # Slightly increased from 0.3
         "monster_type": "dragon",
-        "image_path": "Images/dragon.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/dragon.png",
         "attack_sound_path": "sounds/dragon_roar.wav"
     },
     "Succubus": { # Note: Succubus is listed in Tier 3 and Tier 4 probabilities - keeping it consistent with those probability tables. You can adjust if needed.
@@ -893,7 +893,7 @@ monster_data = {
         "accuracy": 0.85,  # Same as Tier 3
         "evasion": 0.6,    # Same as Tier 3
         "monster_type": "fiend",
-        "image_path": "Images/succubus.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/succubus.png",
         "attack_sound_path": "sounds/succubus_charm.wav"
     },
 
@@ -904,7 +904,7 @@ shop_items_data = {
         "description": "Restores a small amount of health.",
         "price": 25,
         "category": "Potions",
-        "image_path": "Images/potion_small.png", # Path to a small potion icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/potion_small.png", # Path to a small potion icon
         "effect": {"type": "heal", "amount": 20} # Example effect: heals 20 HP
     },
     "basic_sword_1": {
@@ -912,7 +912,7 @@ shop_items_data = {
         "description": "A simple but reliable iron sword.",
         "price": 100,
         "category": "Weapons",
-        "image_path": "Images/sword_iron.png", # Path to an iron sword icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/sword_iron.png", # Path to an iron sword icon
         "stats_bonus": {"attack": 5} # Example stat bonus: +5 Attack
     },
     "leather_armor_1": {
@@ -920,7 +920,7 @@ shop_items_data = {
         "description": "Light and flexible leather armor.",
         "price": 80,
         "category": "Armor",
-        "image_path": "Images/armor_leather.png", # Path to a leather armor icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/armor_leather.png", # Path to a leather armor icon
         "stats_bonus": {"defense": 3} # Example stat bonus: +3 Defense
     },
     "scroll_ Minor Damage": {
@@ -928,7 +928,7 @@ shop_items_data = {
         "description": "A scroll that unleashes a small burst of magical damage.",
         "price": 50,
         "category": "Scrolls",
-        "image_path": "Images/scroll_damage.png", # Path to a scroll icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/scroll_damage.png", # Path to a scroll icon
         "effect": {"type": "damage", "amount": 10, "target": "enemy"} # Example effect: deals 10 damage to enemy
     },
     "torch_1": {
@@ -936,7 +936,7 @@ shop_items_data = {
         "description": "Provides light in dark places. Mostly useful in dungeons.",
         "price": 10,
         "category": "Misc.",
-        "image_path": "Images/torch.png", # Path to a torch icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/torch.png", # Path to a torch icon
         "effect": {"type": "utility", "use": "light"} # Example utility effect
     },
      "medium_healing_potion_1": { # Unique item ID (you can use names or generate IDs)
@@ -944,7 +944,7 @@ shop_items_data = {
         "description": "Restores a medium amount of health.",
         "price": 50,
         "category": "Potions",
-        "image_path": "Images/potion_medium.png", # Path to a medium potion icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/potion_medium.png", # Path to a medium potion icon
         "effect": {"type": "heal", "amount": 40} # Example effect: heals 40 HP
     },
     "steel_sword_1": {
@@ -952,7 +952,7 @@ shop_items_data = {
         "description": "A sturdy steel sword, better than iron.",
         "price": 200,
         "category": "Weapons",
-        "image_path": "Images/sword_steel.png", # Path to a steel sword icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/sword_steel.png", # Path to a steel sword icon
         "stats_bonus": {"attack": 10} # Example stat bonus: +10 Attack
     },
     "chainmail_armor_1": {
@@ -960,7 +960,7 @@ shop_items_data = {
         "description": "Provides good protection.",
         "price": 150,
         "category": "Armor",
-        "image_path": "Images/armor_chainmail.png", # Path to a chainmail armor icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/armor_chainmail.png", # Path to a chainmail armor icon
         "stats_bonus": {"defense": 6} # Example stat bonus: +6 Defense
     },
     "scroll_ Medium Damage": {
@@ -968,7 +968,7 @@ shop_items_data = {
         "description": "A scroll that unleashes a moderate burst of magical damage.",
         "price": 100,
         "category": "Scrolls",
-        "image_path": "Images/scroll_medium_damage.png", # Path to a scroll icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/scroll_medium_damage.png", # Path to a scroll icon
         "effect": {"type": "damage", "amount": 20, "target": "enemy"} # Example effect: deals 20 damage to enemy
     },
     "rope_1": {
@@ -976,7 +976,7 @@ shop_items_data = {
         "description": "A sturdy rope. Useful for climbing and other things.",
         "price": 20,
         "category": "Misc.",
-        "image_path": "Images/rope.png", # Path to a rope icon
+        "image_path": "PythonGaming V3/PYTHON Gaming/Images/rope.png", # Path to a rope icon
         "effect": {"type": "utility", "use": "climbing"} # Example utility effect
     },
 }

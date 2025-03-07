@@ -690,7 +690,7 @@ class Monster:
 monster_data = {
 "Goblin": {
         "name": "Goblin",
-        "health": 40,      # Increased from 25
+        "health": 40,      # Increased 
         "attack": [5, 9],   # Increased from [4, 7]
         "defense": 3,      # Increased from 2
         "experience": 25,    # Slightly increased from 20

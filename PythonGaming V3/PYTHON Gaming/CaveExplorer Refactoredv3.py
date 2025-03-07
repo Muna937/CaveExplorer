@@ -1,7 +1,6 @@
 import pygame
 import random
 # --- Initialization ---
-#Change room description font for clareity 
 pygame.init()
 pygame.font.init()
 # --- Constants ---
@@ -19,11 +18,12 @@ PURPLE=(80,0,80)
 # --- Screen Setup ---
 screen = pygame.display.set_mode((SCREEN_WIDTH , SCREEN_HEIGHT))
 pygame.display.set_caption("Dungeon Crawler")
-town_bg_image=pygame.image.load("PythonGaming V3/PYTHON Gaming/unnamed.png").convert()
+town_bg_image=pygame.image.load("PythonGaming V3/PYTHON Gaming/Images/town.png").convert()
+tavern_bg_image=pygame.image.load("PythonGaming V3/PYTHON Gaming/Images/tavern.png").convert()
 # --- Fonts ---
 TITLE_FONT = pygame.font.Font("freesansbold.ttf", 64)
-BUTTON_FONT = pygame.font.Font("freesansbold.ttf", 36)
-CHARACTER_FONT = pygame.font.Font("freesansbold.ttf", 36)
+BUTTON_FONT = pygame.font.Font("freesansbold.ttf", 20)
+CHARACTER_FONT = pygame.font.Font("freesansbold.ttf", 20)
 STATUS_FONT = pygame.font.Font(None, 24)
 SMALL_FONT = pygame.font.Font(None, 20)
 # --- Menu Variables ---
@@ -158,9 +158,8 @@ class Player:
         self.experience = 0
         self.inventory = []
         self.buffs = [] # List to hold buffs
-        self.coins = 600
+        self.coins = 0
         self.max_experience = self._calculate_max_experience()
-
     def get_attack_damage(self): # Renamed to get_attack_damage for clarity
         """Calculates attack damage (including buffs)."""
         base_attack_range = self.stats['attack'] # Get attack range (list/tuple)
@@ -168,7 +167,6 @@ class Player:
         max_damage = base_attack_range[1] # Maximum damage from range
         buffed_attack = 0 # Initialize flat buffed_attack (sum of flat buffs)
         percentage_buff_multiplier = 1.0 # Initialize percentage buff multiplier
-
         for buff in self.buffs: # Iterate through self.buffs (correct list name)
             if buff['stat'] == 'attack_buff': # Check for 'attack_buff' stat (correct key and stat name)
                 if buff.get('is_percentage_buff'): # Check for percentage buff (existing logic)
@@ -179,7 +177,6 @@ class Player:
         max_damage = round(max_damage * percentage_buff_multiplier)
         random_damage = random.randint(min_damage, max_damage) 
         return round(random_damage + buffed_attack) 
-    
     def get_defense(self):
         base_defense = self.stats['defense']
         buffed_defense = base_defense
@@ -195,7 +192,6 @@ class Player:
         return round(buffed_defense)
     def get_name(self):
         return self.name
-
     def take_damage(self, damage):
         actual_damage = max(0, damage)
         if actual_damage > 0: 
@@ -205,7 +201,6 @@ class Player:
         else:
             combat_log_messages.append(f"{self.name} took no damage!") 
             return 0
-
     def attack(self, enemy):
         attacker_accuracy = self.get_accuracy()
         enemy_evasion = enemy.get_evasion()
@@ -226,7 +221,6 @@ class Player:
         else:
             combat_log_messages.append(f"{self.name} attacks {enemy.get_name()} and misses!")
             return 0
-
     def get_evasion(self):
         """Calculates player evasion, returning WHOLE NUMBER PERCENTAGE (0-100)."""
         base_evasion_percentage = self.stats['evasion'] # Get base evasion as whole number percentage
@@ -239,16 +233,13 @@ class Player:
                 else:
                     buffed_evasion_percentage += buff['amount']
         return buffed_evasion_percentage # <--- Return WHOLE NUMBER PERCENTAGE (0-100)
-
     def get_accuracy(self):
         """Calculates player accuracy, returning WHOLE NUMBER PERCENTAGE (0-100)."""
         accuracy_percentage_whole_number = self.stats['accuracy'] # Get accuracy as whole number percentage from stats
         return accuracy_percentage_whole_number # <--- Return WHOLE NUMBER PERCENTAGE directly
-
     def is_alive(self):
         """Checks if the player's health is above 0."""
         return self.current_health > 0
-
     def gain_experience(self, xp):
         """Awards experience points and handles level ups."""
         self.experience += xp
@@ -257,41 +248,31 @@ class Player:
     def _calculate_max_experience(self): # Private method to calculate max_experience
         """Calculates the experience needed for the next level."""
         return (self.level ** 2) * 100
-
     def level_up(self):
         """Handles player level up, increasing stats based on class."""
         if self.experience >= self.max_experience:
             self.level += 1
             self.experience -= self.max_experience
             self.max_experience = int(self.max_experience * 1.5) # Increase XP needed for next level
-
             level_up_stats = CLASS_LEVEL_UP_STATS[self.class_name]
-
             self.stats["health"] += level_up_stats["health"]
             self.stats["mana"] += level_up_stats["mana"]
-
             # --- Handle Attack Range Level Up ---
             attack_increase = level_up_stats["attack"] # Get the *increase* value from level up stats
             current_attack_range = self.stats["attack"] # Get current attack range (list)
             current_attack_range[0] += attack_increase # Increase the minimum of the range
             current_attack_range[1] += attack_increase # Increase the maximum of the range
-
-
             self.stats["defense"] += level_up_stats["defense"]
             self.stats["accuracy"] += level_up_stats["accuracy"]
             self.stats["evasion"] += level_up_stats["evasion"]
-
             self.current_health = self.stats["health"] # Full heal on level up
             self.current_mana = self.stats["mana"]     # Full mana on level up
-
             combat_log_messages.append(f"{self.name} leveled up to Level {self.level}!")
             combat_log_messages.append("Stats increased!")
-
     def gain_coins(self, gold):
         """Adds gold to the player's inventory (for now just tracks gold)."""
         self.coins += gold
         combat_log_messages.append(f"{self.name} gained {gold} gold.") # Log gold gain
-
     def use_mana(self, amount):
         """Reduces player's mana by the given amount, returns True if successful, False if not enough mana."""
         if self.current_mana >= amount:
@@ -300,20 +281,16 @@ class Player:
         else:
             combat_log_messages.append("Not enough mana!")
             return False
-
     def apply_buff(self, buff_data):
         buff_name = buff_data['name']
         buff_stat = buff_data['stat']
         buff_duration = buff_data['duration_turns'] if 'duration_turns' in buff_data else 3
         buff_type = buff_data.get('buff_type')
-
         print(f"Applying buff: Name='{buff_name}', Stat='{buff_stat}', Type='{buff_type}'") # <--- DEBUG PRINT
-
         if buff_type == "rest":
             print("  Buff type is 'rest'. Checking for existing *different rest option* buffs...") # <--- DEBUG PRINT - Refined message
             rest_buffs_to_remove = []
             current_rest_option_name = buff_name.split(" - ")[1].split(" ")[0] # Extract "Rough Couch", "Cozy Bed", etc.
-
             for buff in self.buffs:
                 if buff.get('buff_type') == "rest":
                     existing_rest_buff_option_name = buff['name'].split(" - ")[1].split(" ")[0] # Extract existing buff's option name
@@ -324,13 +301,11 @@ class Player:
                 print(f"    Removing existing *different rest option* buff: Name='{buff_to_remove['name']}', Stat='{buff_to_remove['stat']}'") # <--- DEBUG PRINT
                 self.buffs.remove(buff_to_remove)
                 combat_log_messages.append(f"Previous rest buff '{buff_to_remove['name']}' removed.")
-
         existing_buff_index = -1
         for index, buff in enumerate(self.buffs):
             if buff['name'] == buff_name and buff['stat'] == buff_stat:
                 existing_buff_index = index
                 break
-
         if existing_buff_index != -1:
             self.buffs[existing_buff_index]['duration_turns'] = buff_duration
             combat_log_messages.append(f"{buff_name} duration refreshed on {self.name}.")
@@ -339,7 +314,6 @@ class Player:
             buff['duration_turns'] = buff_duration
             self.buffs.append(buff)
             combat_log_messages.append(f"{self.name} is buffed with {buff_name}!")
-            
     def update_buff_durations(self):
         buffs_to_remove = []
         for buff in self.buffs:
@@ -351,7 +325,6 @@ class Player:
             self.buffs.remove(buff)
     def start_turn(self):
         self.update_buff_durations() # Update buff durations at start of turn
-
     def end_turn(self):
         """Actions to perform at the end of the player's turn."""
         pass # No end of turn actions for now, but can be extended later
@@ -513,7 +486,7 @@ def render_status_bar():
     current_health_width = int(health_bar_width * health_ratio)
     pygame.draw.rect(screen, RED, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
     pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
-    health_text = SMALL_FONT.render(f"HP: {player.current_health}/{player.stats['health']}", True, BLACK)
+    health_text = SMALL_FONT.render(f"HP: {player.current_health}/{player.stats['health']}", True, WHITE)
     health_text_rect = health_text.get_rect(center=(health_bar_x + health_bar_width // 2, health_bar_y + health_bar_height // 2))
     screen.blit(health_text, health_text_rect)
     mana_bar_width = 200
@@ -524,7 +497,7 @@ def render_status_bar():
     current_mana_width = int(mana_bar_width * mana_ratio)
     pygame.draw.rect(screen, BLACK, (mana_bar_x, mana_bar_y, mana_bar_width, mana_bar_height))
     pygame.draw.rect(screen, BLUE, (mana_bar_x, mana_bar_y, current_mana_width, mana_bar_height))
-    mana_text = SMALL_FONT.render(f"MP: {player.current_mana}/{player.stats['mana']}", True, BLACK)
+    mana_text = SMALL_FONT.render(f"MP: {player.current_mana}/{player.stats['mana']}", True, WHITE)
     mana_text_rect = mana_text.get_rect(center=(mana_bar_x + mana_bar_width // 2, mana_bar_y + mana_bar_height // 2))
     screen.blit(mana_text, mana_text_rect)
     # --- Coins ---
@@ -665,7 +638,7 @@ def render_monster_status_bar(): # <---- Function to render MONSTER status bar a
         line_spacing = 20 # Line spacing for stats
         name_text = stat_font.render(f"Name: {current_enemy.get_name()}", True, WHITE) # Monster name
         screen.blit(name_text, (stats_x, stats_y))
-        class_text = stat_font.render(f"Type: {current_enemy.monster_type,}", True, WHITE) # Monster class
+        class_text = stat_font.render(f"Type: {current_enemy.monster_type}", True, WHITE) # Monster class
         screen.blit(class_text, (stats_x, stats_y + line_spacing))
         level_text = stat_font.render(f"Level: --", True, WHITE) # Level - Null value as requested
         screen.blit(level_text, (stats_x, stats_y + 2 * line_spacing))
@@ -945,7 +918,7 @@ monster_data = {
         "image": None,
         "accuracy": 65,
         "evasion": 20,
-        "monster_type": "greenskin",
+        "monster_type": "Greenskin",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/Goblin.png",
         "attack_sound_path": "sounds/goblin_attack.wav",
         "abilities": ["Goblin Abilities"]
@@ -962,7 +935,7 @@ monster_data = {
         "image": None,
         "accuracy": 75,
         "evasion": 30,
-        "monster_type": "beast",
+        "monster_type": "Beast",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
         "abilities": []
@@ -979,7 +952,7 @@ monster_data = {
         "image": None,
         "accuracy": 70,
         "evasion": 27,
-        "monster_type": "beast",
+        "monster_type": "Beast",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/bigrat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
         "abilities": []
@@ -996,7 +969,7 @@ monster_data = {
         "image": None,
         "accuracy": 70,
         "evasion": 45,
-        "monster_type": "beast",
+        "monster_type": "Beast",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/spider.png",
         "attack_sound_path": "sounds/spider_attack.wav",
         "abilities": []
@@ -1013,7 +986,7 @@ monster_data = {
         "image": None,
         "accuracy": 80,
         "evasion": 15,
-        "monster_type": "undead",
+        "monster_type": "Undead",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/skeleton_warrior.png",
         "attack_sound_path": "sounds/skeleton_attack.wav",
         "abilities": []
@@ -1030,7 +1003,7 @@ monster_data = {
         "image": None,
         "accuracy": 80,
         "evasion": 30,
-        "monster_type": "beast",
+        "monster_type": "Beast",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/giant_rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
         "abilities": []
@@ -1047,7 +1020,7 @@ monster_data = {
         "image": None,
         "accuracy": 90,
         "evasion": 35,
-        "monster_type": "fey",
+        "monster_type": "Fey",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/siren.png",
         "attack_sound_path": "sounds/siren_attack.wav",
         "abilities": []
@@ -1064,7 +1037,7 @@ monster_data = {
         "image": None,
         "accuracy": 75,
         "evasion": 20,
-        "monster_type": "construct",
+        "monster_type": "Construct",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/mimic.png",
         "attack_sound_path": "sounds/mimic_attack.wav",
         "abilities": []
@@ -1081,7 +1054,7 @@ monster_data = {
         "image": None,
         "accuracy": 85,
         "evasion": 15,
-        "monster_type": "greenskin",
+        "monster_type": "Greenskin",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/orc.png",
         "attack_sound_path": "sounds/orc_attack.wav",
         "abilities": ["Orc Abilities"]
@@ -1098,7 +1071,7 @@ monster_data = {
         "image": None,
         "accuracy": 85,
         "evasion": 45,
-        "monster_type": "fiend",
+        "monster_type": "Fiend",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/succubus.png",
         "attack_sound_path": "sounds/succubus_charm.wav",
         "abilities": []
@@ -1115,7 +1088,7 @@ monster_data = {
         "image": None,
         "accuracy": 95,
         "evasion": 20,
-        "monster_type": "undead",
+        "monster_type": "Undead",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/lich.png",
         "attack_sound_path": "sounds/lich_attack.wav",
         "abilities": []
@@ -1132,7 +1105,7 @@ monster_data = {
         "image": None,
         "accuracy": 95,
         "evasion": 35,
-        "monster_type": "dragon",
+        "monster_type": "Dragon",
         "image_path": "PythonGaming V3/PYTHON Gaming/Images/dragon.png",
         "attack_sound_path": "sounds/dragon_roar.wav",
         "abilities": []
@@ -1694,7 +1667,7 @@ EMPTY_ROOM_DESCRIPTIONS = [ # Add the list from above to your code, usually near
     "The room is filled with the sounds of smoooooth jazz.",
     "You can smell the sea from where you stand.Water splashing in from the round windows tells you that you aren't in the cave anymore.",
     "The room appears to have landed on someone.You spot some red slippers on the feet sticking out.",
-    "The room seems to be a tunnel. You spot two bright lets off to the right.\nThey are getting closer.The room starts to shake!.",
+    "The room seems to be a tunnel. You spot two bright lets off to the right.They are getting closer.The room starts to shake!.",
     "The room is OUCH! the room has a really short door frame!",
     "The room has padded walls. Maybe its where you belong.",
     "The room another adventurer you wave excitedly! Oh its just a mirror...",
@@ -1824,19 +1797,16 @@ def apply_rest_buff(player, rest_option):
     attack_boost_percentage = rest_option["attack_boost_percentage"]
     defense_boost_percentage = rest_option["defense_boost_percentage"]
     duration = rest_option["duration"]
-
     # --- 1. Apply Immediate HP Restoration --- (No change needed here)
     if hp_restore > 0:
         player.current_health += hp_restore
         player.current_health = min(player.current_health, player.stats["health"])
         print(f"{player.get_name()} restored {hp_restore} health by resting.")
-
     # --- 1b. Apply Immediate Mana Restoration --- (No change needed here)
     if mana_restore > 0:
         player.current_mana += mana_restore
         player.current_mana = min(player.current_mana, player.stats["mana"])
         print(f"{player.get_name()} restored {mana_restore} mana by resting.")
-
     # --- 2a. Apply Attack Boost Buff --- (Modified to set buff_type)
     if attack_boost_percentage > 0:
         attack_buff_data = {
@@ -1848,7 +1818,6 @@ def apply_rest_buff(player, rest_option):
             "buff_type": "rest" # <---- SET buff_type to "rest" - CRUCIAL!
         }
         player.apply_buff(attack_buff_data)
-
     # --- 2b. Apply Defense Boost Buff --- (Modified to set buff_type)
     if defense_boost_percentage > 0:
         defense_buff_data = {
@@ -1859,16 +1828,13 @@ def apply_rest_buff(player, rest_option):
             "duration_turns": duration,
             "buff_type": "rest" # <---- SET buff_type to "rest" - CRUCIAL!
         }
-        player.apply_buff(defense_buff_data)
-        
+        player.apply_buff(defense_buff_data)     
 def use_ability(ability, caster, target):
     """Handles ability use, applying effects based on ability type."""
     if caster.use_mana(ability["mana_cost"]):
         ability_name = ability["name"]
         combat_log_messages.append(f"{caster.name} uses {ability_name}!")
-
         ability_type = ability["type"]
-
         if ability_type == "attack" or ability_type == "magic_attack": # Handle both attack types similarly for now
             damage_multiplier = ability.get("damage_multiplier", 1.0) # Default multiplier to 1.0 if not specified
             damage = int(caster.get_attack_damage() * damage_multiplier)
@@ -1876,13 +1842,11 @@ def use_ability(ability, caster, target):
                 damage = int(damage * 3) # Example: Magic attacks do 20% more base damage for now - balance later
             damage_dealt = target.take_damage(damage)
             combat_log_messages.append(f"{ability_name} hits {target.get_name()} for {damage_dealt} damage!")
-
         elif ability_type == "buff":
             buff_stat = ability["stat"]
             buff_amount = ability["buff_amount"]
             buff_duration = ability.get("duration", 3) # Default duration if not specified
             buff_name = ability_name # Use ability name as buff name
-
             if buff_stat == "defense": # Warrior Defensive Stance
                 buff_data = {
                     "name": buff_name,
@@ -1892,7 +1856,6 @@ def use_ability(ability, caster, target):
                     "is_percentage_buff": True
                 }
                 caster.apply_buff(buff_data)
-
             elif buff_stat == "magic_shield": # Mage Magic Shield (flat buff) - corrected stat name
                 buff_data = {
                     "name": buff_name,
@@ -1911,7 +1874,6 @@ def use_ability(ability, caster, target):
                 "is_percentage_buff": True
                 }
                 caster.apply_buff(buff_data)
-
         elif ability_type == "heal": # Heal ability
             heal_amount = ability["heal_amount"]
             caster.current_health = min(caster.stats['health'], caster.current_health + heal_amount) # Heal, but not over max HP
@@ -1929,7 +1891,6 @@ def use_ability(ability, caster, target):
         player_turn = False
     else:
         combat_log_messages.append(f"{caster.name} does not have enough mana to use {ability['name']}!")
-
 def descend_staircase():
     global current_room_id, roomlvl, rooms, player_room_count, CURRENT_STATE, current_enemy, player_turn # <--- Include CURRENT_STATE, current_enemy, player_turn in globals
     print("You descend the staircase...")
@@ -1948,7 +1909,6 @@ def descend_staircase():
 def move():
     global current_room_id, CURRENT_STATE, current_enemy, player_room_count, roomlvl, rooms, player_turn # Keep player_turn if you use it globally
     current_room = rooms[current_room_id] # <---- Fetch current_room ONCE at the beginning
-
     if current_room["monster"] and current_room["monster"].is_alive():
         print("You cannot leave while a monster is alive!")
         return
@@ -1979,7 +1939,6 @@ def move():
         print("An empty room.")
 def reset_game_state():
     global player, rooms, current_room_id, roomlvl, player_room_count, current_enemy, CURRENT_STATE, player_turn
-
     print("Resetting Game State...")
     # --- 2. Regenerate Dungeon ---
     roomlvl = 0  # Reset to starting dungeon level (usually 0 or 1)
@@ -1992,29 +1951,24 @@ def reset_game_state():
     CURRENT_STATE = MENU  # **Set game state back to DUNGEON (or TOWN, if you start in town)**
     player_turn = True      # Reset player turn for combat (if applicable)
     print("Combat state reset.")
-
     print("Game state reset complete. Ready for a new game run.")
 def draw_rest_options_box():
     box_rect = pygame.Rect(SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2 - 100, 400, 300) # Example box size/position
     pygame.draw.rect(screen, (200, 200, 200), box_rect) # Light gray box background
     pygame.draw.rect(screen, BLACK, box_rect, 2) # Black border
-
     title_font = pygame.font.Font(None, 40)
     title_text = title_font.render("Rest Options", True, BLACK)
     title_rect = title_text.get_rect(center=(box_rect.centerx, box_rect.top + 20))
     screen.blit(title_text, title_rect)
-
     y_offset = 0
     for option_key, option_data in REST_OPTIONS.items():
         button_rect = REST_OPTION_BUTTON_RECTS[option_key]
         pygame.draw.rect(screen, (150, 150, 150), button_rect) # Button background
         pygame.draw.rect(screen, BLACK, button_rect, 1) # Button border
-
         option_font = pygame.font.Font(None, 30)
         option_text = option_font.render(f"{option_data['name']} ({option_data['cost']} Gold)", True, BLACK)
         option_rect = option_text.get_rect(center=button_rect.center)
         screen.blit(option_text, option_rect)
-
         # --- Display Option Description ---
         description_font = pygame.font.Font(None, 24) # Smaller font for description
         # --- Wrap text to fit within the box width ---
@@ -2026,8 +1980,6 @@ def draw_rest_options_box():
             description_rect = description_text_surface.get_rect(topleft=(button_rect.left + 10, description_y_start)) # Add some left padding
             screen.blit(description_text_surface, description_rect)
             description_y_start += description_font.get_linesize() # Move to next line for multi-line descriptions
-
-
 # --- Text wrapping function (add this function to your code if you don't have one already) ---
 def wrap_text(text, font, max_width):
     """Wraps text to fit within a given width using a given font."""
@@ -2070,7 +2022,6 @@ def draw_item_slots():
             item_text_surface = SMALL_FONT.render(item_name, True, WHITE) # Render item name text
             item_text_rect = item_text_surface.get_rect(center=slot_rect.center) # Center text in slot
             screen.blit(item_text_surface, item_text_rect) # Blit item name text
-
 def draw_scroll_buttons():
     pygame.draw.rect(screen, BUTTON_COLOR, SCROLL_UP_BUTTON_RECT) # "Scroll Up" button
     pygame.draw.rect(screen, BUTTON_COLOR, SCROLL_DOWN_BUTTON_RECT) # "Scroll Down" button
@@ -2104,7 +2055,6 @@ def populate_shop_items():
             items_added += 1
             if items_added >= 4: # Limit to 4 items for now (for 4 slots)
                 break # Stop after adding 4 items
-
 def draw_shop_tabs():
     global current_shop_category_index # Need to access and potentially modify this
     for i, category_name in enumerate(SHOP_CATEGORIES):
@@ -2200,7 +2150,6 @@ def handle_menu():
 def handle_menu_events(events):
     global CURRENT_STATE
     mouse_pos = pygame.mouse.get_pos() # Get mouse position outside the event loop for general mouse pos
-
     for event in events: # Iterate through events - IMPORTANT for proper event handling
         if event.type == pygame.MOUSEBUTTONDOWN: # Check for mouse button press event (click)
             if event.button == 1:
@@ -2214,21 +2163,17 @@ def handle_menu_events(events):
                     CURRENT_STATE = GAME_OVER
 def handle_game_over():
     screen.fill(BLACK) # Fill screen with black background
-
     # --- "Game Over" Text ---
     game_over_font = pygame.font.Font("freesansbold.ttf", 64)
     game_over_text = game_over_font.render("Game Over", True, WHITE)
     game_over_rect = game_over_text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50)) # Positioned slightly above center
     screen.blit(game_over_text, game_over_rect)
-
     # --- "Retry" Button ---
     pygame.draw.rect(screen, GREEN, RETRY_BUTTON_RECT) # Draw the button rectangle in green
-
     retry_font = pygame.font.Font("freesansbold.ttf", 32) # Smaller font for button text
     retry_text = retry_font.render("Retry", True, BLACK) # "Retry" text in black
     retry_text_rect = retry_text.get_rect(center=RETRY_BUTTON_RECT.center) # Center text in button
     screen.blit(retry_text, retry_text_rect)
-
     pygame.display.flip() # Update the display to show the button
 def handle_game_over_events(events):
     global CURRENT_STATE 
@@ -2263,7 +2208,6 @@ def handle_character_creation():
     screen.blit(start_game_button_text, start_game_button_text.get_rect(center=START_GAME_BUTTON_RECT.center))
 def handle_character_creation_events(events):  # <--- Parameter is now 'events' (plural - list of events)
     global INPUT_ACTIVE, PLAYER_NAME, PLAYER_CLASS_NAME, player # Corrected global declaration - use 'player' (lowercase)
-
     mouse_pos = pygame.mouse.get_pos()  # Mouse position is needed, get it outside the loop once
     for event in events:
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -2286,19 +2230,18 @@ def handle_character_creation_events(events):  # <--- Parameter is now 'events' 
                         global player, CURRENT_STATE # Global declaration - ensure 'player' is global
                         player_class_stats = CLASS_STATS[PLAYER_CLASS_NAME] # Get base class stats (use a different variable name for clarity)
                         # --- NEW DEBUG PRINT BEFORE PLAYER CREATION ---
-                        print("Debug - Before Player Creation: CLASS_STATS['Warrior']['attack']:") # Assuming you are testing Warrior
+                        print("Debug - Before Player Creation: CLASS_STATS['Warrior']['attack']:") 
                         print(CLASS_STATS['Warrior']['attack'])
-                        print("Debug - Before Player Creation: CLASS_STATS['Mage']['attack']:") # And perhaps test Mage too
+                        print("Debug - Before Player Creation: CLASS_STATS['Mage']['attack']:") 
                         print(CLASS_STATS['Mage']['attack'])
-                        print("Debug - Before Player Creation: CLASS_STATS['Rogue']['attack']:") # And Rogue
+                        print("Debug - Before Player Creation: CLASS_STATS['Rogue']['attack']:") 
                         print(CLASS_STATS['Rogue']['attack'])
-                        player = Player(PLAYER_NAME, PLAYER_CLASS_NAME) # Create a *new* Player object
+                        player = Player(PLAYER_NAME, PLAYER_CLASS_NAME)
                         print("Debug - Character Creation: Player Attack Stats after creation:")
                         print(f"Player Class: {player.class_name}")
                         print(f"Player Attack: {player.stats['attack']}")
                         CURRENT_STATE = TOWN
                         print(f"Character Created: Name={player.name}, Class={player.class_name}")
-
         elif event.type == pygame.KEYDOWN:  # Check for KEYDOWN events within the loop
             if INPUT_ACTIVE:  # Only process key presses if input is active
                 if event.key == pygame.K_RETURN:
@@ -2311,7 +2254,7 @@ def handle_town():
     global CURRENT_STATE,screen
     screen.blit(town_bg_image,(0,0))
     render_status_bar()
-def handle_town_events(events): # <--- Parameter is now 'events' (plural - list of events)
+def handle_town_events(events):
     global CURRENT_STATE, current_room_id
     mouse_pos = pygame.mouse.get_pos() # Mouse position is needed, so get it outside the loop once
     for event in events:
@@ -2337,24 +2280,20 @@ def handle_town_events(events): # <--- Parameter is now 'events' (plural - list 
                     CURRENT_STATE = MENU
 def handle_tavern():
     global CURRENT_STATE, SHOW_REST_OPTIONS_BOX, screen
-    screen.fill((180, 150, 100))  # Example Tavern background color (light brown-ish)
-
+    screen.blit(tavern_bg_image,(0,0)) 
     # Tavern Title Text
     tavern_font = pygame.font.Font(None, 48)
-    tavern_title_text = tavern_font.render("The Cozy Tavern", True, BLACK)
+    tavern_title_text = tavern_font.render("The Cozy Tavern", True, WHITE)
     tavern_title_rect = tavern_title_text.get_rect(center=(SCREEN_WIDTH // 2, 100))
     screen.blit(tavern_title_text, tavern_title_rect)
     render_status_bar()
-
     # --- Render Rest Menu (CONDITIONAL - only if SHOW_REST_OPTIONS_BOX is True) ---
-    if SHOW_REST_OPTIONS_BOX: # <--- ADD this condition
-        render_tavern_rest_menu() # <--- ADD THIS CALL to render the menu!
+    if SHOW_REST_OPTIONS_BOX: 
+        render_tavern_rest_menu() 
 def render_tavern_rest_menu():
-    global SHOW_REST_OPTIONS_BOX, TAVERN_REST_EXIT_BUTTON_RECT # Make sure these are global
-
-    TAVERN_REST_EXIT_BUTTON_RECT = None  # <---- INITIALIZE TAVERN_REST_EXIT_BUTTON_RECT to None here, BEFORE the if block
-
-    if SHOW_REST_OPTIONS_BOX: # Only draw if the box is supposed to be shown
+    global SHOW_REST_OPTIONS_BOX, TAVERN_REST_EXIT_BUTTON_RECT 
+    TAVERN_REST_EXIT_BUTTON_RECT = None  
+    if SHOW_REST_OPTIONS_BOX: 
         # --- Menu Box (reusing combat menu box style) ---
         menu_width = 400
         menu_height = 300
@@ -2376,23 +2315,19 @@ def render_tavern_rest_menu():
         exit_text_rect = exit_text.get_rect(center=exit_button_rect.center)
         screen.blit(exit_text, exit_text_rect)
         # --- Store Exit Button Rect Globally (for event handling) ---
-        TAVERN_REST_EXIT_BUTTON_RECT = exit_button_rect # NOW assign the Rect object here if SHOW_REST_OPTIONS_BOX is True # Store it globally so events can check for clicks
-
+        TAVERN_REST_EXIT_BUTTON_RECT = exit_button_rect 
         # --- Rest Option Buttons ---
-        option_button_y_start = menu_y + 50 # Start Y position for buttons
-        option_button_spacing = 70 # Spacing between buttons (adjust as needed)
-        option_button_width = menu_width - 40 # Button width inside menu
-        option_button_height = 60 # Button height (adjust as needed)
-
-        option_index = 0 # Index to position buttons vertically
-        global REST_OPTION_BUTTON_RECTS # Make REST_OPTION_BUTTON_RECTS global to be modified here if needed
-        REST_OPTION_BUTTON_RECTS = {} # Clear old rects, will be redefined here
-
+        option_button_y_start = menu_y + 50 
+        option_button_spacing = 70 
+        option_button_width = menu_width - 40 
+        option_button_height = 60
+        option_index = 0 
+        global REST_OPTION_BUTTON_RECTS
+        REST_OPTION_BUTTON_RECTS = {} 
         for option_key, option_data in REST_OPTIONS.items(): # Iterate through REST_OPTIONS dictionary
             option_button_rect = pygame.Rect(menu_x + 20, option_button_y_start + option_index * option_button_spacing, option_button_width, option_button_height)
             pygame.draw.rect(screen, WHITE, option_button_rect)
             pygame.draw.rect(screen, BLACK, option_button_rect, 1)
-
             # --- Render Option Name (like Ability Name) ---
             option_name_text = BUTTON_FONT.render(option_data["name"], True, BLACK) # Use BUTTON_FONT for option name
             option_name_rect = option_name_text.get_rect(topleft=(option_button_rect.x + 5, option_button_rect.y + 5))
@@ -2423,8 +2358,6 @@ def handle_rest_option_click(option_key):
         print(f"Player chose {selected_option['name']}. Cost: {cost} Gold. Buff applied.") 
     else:
         print("Not enough gold to rest here!")  # Print "not enough gold" message to the console
-        # --- Optional: Implement in-game message for insufficient gold here ---
-        # Example: display_message("Not enough gold to rest here.", duration=2)
 
     SHOW_REST_OPTIONS_BOX = False  # Regardless of success or failure, close the rest options box after the click
 def handle_tavern_events(events):

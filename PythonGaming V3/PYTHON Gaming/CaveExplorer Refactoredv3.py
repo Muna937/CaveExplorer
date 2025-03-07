@@ -701,7 +701,7 @@ monster_data = {
         "accuracy": 0.65,  # Slightly increased from 0.6
         "evasion": 0.2,
         "monster_type": "greenskin",
-        "image_path": "PythonGaming V3/PYTHON Gaming/Images/Goblin.png",
+        "image_path": "PythonGaming V3/PYTHON Gaming/git Images/Goblin.png",
         "attack_sound_path": "sounds/goblin_attack.wav"
     },
     "Rat": {

@@ -1813,8 +1813,7 @@ REST_OPTIONS = {
         "attack_boost_percentage": 0.20,
         "defense_boost_percentage": 0.10,
         "duration": 12,
-        "description": "The finest room in the tavern. Pure luxury."
-        
+        "description": "The finest room in the tavern. Pure luxury." 
     }
 }
 #PLAYER ACTIONS

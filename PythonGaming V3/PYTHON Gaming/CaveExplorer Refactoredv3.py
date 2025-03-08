@@ -1,6 +1,10 @@
 import pygame
 import random
-#To do list Currently in combat log if the hostile rolls less then your defense it comes up as a miss not a block there is no detection whether the monster missed you or you just blocked it Accuracy stat needs to be shown for the player and monster text outlining needs to be done  throughout the project and map design comes next. maybe something like silver luna map but idk
+#To do list
+#Currently in combat log if the hostile rolls less then your defense it comes up as a miss not a block there is no detection whether the monster missed you or you just blocked it
+# Accuracy stat needs to be shown for the player and monster
+# text outlining needs to be done  throughout the project
+#  map changes later
 # --- Initialization ---
 pygame.init()
 pygame.font.init()
@@ -46,6 +50,8 @@ LOAD_GAME_TEXT = BUTTON_FONT.render("Load Game", True, BLACK)
 OPTIONS_TEXT = BUTTON_FONT.render("Options", True, BLACK)
 QUIT_TEXT = BUTTON_FONT.render("Quit", True, BLACK)
 RETRY_BUTTON_RECT = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50) # Centered below "Game Over" text
+OUTLINE_COLOR = BLACK  # Define outline color globally
+TEXT_COLOR = WHITE   # Define main text color globally
 # --- Character Creation Variables ---
 CHARACTER_TITLE_TEXT = CHARACTER_FONT.render("Character Creation", True, WHITE)
 CHARACTER_TITLE_RECT = CHARACTER_TITLE_TEXT.get_rect(center=(SCREEN_WIDTH // 2, 100))
@@ -69,6 +75,7 @@ player_turn = True
 current_enemy = None
 combat_log_messages = []
 ability_menu_open = False
+turn_counter = 1 
 # --- Game State ---
 MENU = "MENU"
 CHARACTER_CREATION = "CHARACTER_CREATION"
@@ -151,9 +158,9 @@ COMBAT_LOG_TEXT_COLOR = WHITE # Text color for the log messages
 #Tavern Rest UI
 SHOW_REST_OPTIONS_BOX = False
 REST_OPTION_BUTTON_RECTS = {
-    "rough_couch": pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 - 50, 300, 40), # Example positions, adjust
-    "cozy_bed": pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 10, 300, 40),
-    "luxurious_suite": pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 70, 300, 40),
+    "Barn Loft": pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 - 50, 300, 40), # Example positions, adjust
+    "Simple Room": pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 10, 300, 40),
+    "Private Room": pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 70, 300, 40),
 }
 TAVERN_REST_EXIT_BUTTON_RECT = None 
 # --- Player Class ---
@@ -169,7 +176,7 @@ class Player:
         self.experience = 0
         self.inventory = []
         self.buffs = [] # List to hold buffs
-        self.coins = 0
+        self.coins = 500
         self.max_experience = self._calculate_max_experience()
     def get_attack_damage(self): # Renamed to get_attack_damage for clarity
         """Calculates attack damage (including buffs)."""
@@ -209,77 +216,131 @@ class Player:
             self.current_health -= actual_damage
             return actual_damage
         else:
-            message_text=(f"{self.name} took no damage!")
-            add_combat_message(message_text)
             return 0
     def attack(self, enemy):
         attacker_accuracy = self.get_accuracy()
         enemy_evasion = enemy.get_evasion()
-        hit_chance_percentage = max(5, min(95, self.get_accuracy() - enemy.get_evasion())) # DIRECT PERCENTAGE SUBTRACTION, calling get_accuracy and get_evasion which now return percentages
+        hit_chance_percentage = max(5, min(95, self.get_accuracy() - enemy.get_evasion()))
         is_hit = random.random() < (hit_chance_percentage / 100.0)
-        # --- DEBUG PRINTS ---
-        print(f"--- Attack Debug ---")
-        print(f"Attacker: {self.name}, Accuracy: {attacker_accuracy}")
-        print(f"Enemy: {enemy.get_name()}, Evasion: {enemy_evasion}")
-        print(f"Hit Chance Percentage: {hit_chance_percentage:.2f}%") # Format to 2 decimal places
-        print(f"Is Hit Roll (Random < {hit_chance_percentage/100.0:.2f}): {'HIT' if is_hit else 'MISS'}")
-        print(f"--- End Attack Debug ---")
-        if is_hit:
+        if is_hit: # Accuracy check passed - Attack HITS (potentially)
             damage = self.get_attack_damage()
             damage_dealt = enemy.take_damage(damage)
-            message_text=(f"{self.name} attacks {enemy.get_name()} for {damage_dealt} damage!")
+            if damage_dealt > 0: # Damage was actually dealt (after defense)
+                message_text=(f"{self.name} attacks {enemy.get_name()} for {damage_dealt} damage!") # Message for DAMAGE dealt
+            else: # Damage was zero because of defense
+                message_text=(f"{self.name}'s attack was blocked by {enemy.get_name()}'s defense!") # <--- NEW MESSAGE: Attack BLOCKED by defense
             add_combat_message(message_text)
             return damage_dealt
-        else:
-            message_text=(f"{self.name} attacks {enemy.get_name()} and misses!")
+        else: # Accuracy check failed - True MISS
+            message_text=(f"{self.name} attacks {enemy.get_name()} and misses!") # Message for TRUE MISS due to inaccuracy
             add_combat_message(message_text)
             return 0
+    def use_ability(self, ability, target):
+        """Handles ability use, applying effects based on ability type."""
+        if self.use_mana(ability["mana_cost"]):
+            ability_name = ability["name"]
+            message_text=(f"{self.name} uses {ability_name}!")
+            add_combat_message(message_text)
+            ability_type = ability["type"]
+            if ability_type == "attack" or ability_type == "magic_attack": # Handle both attack types similarly for now
+                damage_multiplier = ability.get("damage_multiplier", 1.0) # Default multiplier to 1.0 if not specified
+                damage = int(self.get_attack_damage() * damage_multiplier)
+                if ability_type == "magic_attack":
+                    damage = int(damage * 3) # Example: Magic attacks do 20% more base damage for now - balance later
+                damage_dealt = target.take_damage(damage)
+                message_text=(f"{ability_name} hits {target.get_name()} for {damage_dealt} damage!")
+                add_combat_message(message_text)
+            elif ability_type == "buff":
+                buff_stat = ability["stat"]
+                buff_amount = ability["buff_amount"]
+                buff_duration = ability.get("duration", 3) # Default duration if not specified
+                buff_name = ability_name # Use ability name as buff name
+                if buff_stat == "defense": # Warrior Defensive Stance
+                    buff_data = {
+                        "name": buff_name,
+                        "stat": "defense_buff", # Use "defense_buff" for consistency
+                        "amount": buff_amount, # buff_amount is a multiplier (e.g., 0.5 for 50% increase)
+                        "duration_turns": buff_duration,
+                        "is_percentage_buff": True
+                    }
+                    self.apply_buff(buff_data)
+                elif buff_stat == "magic_shield": # Mage Magic Shield (flat buff) - corrected stat name
+                    buff_data = {
+                        "name": buff_name,
+                        "stat": "defense_buff", #  Using defense_buff for magic shield too - adjust logic if needed later
+                        "amount": buff_amount, # buff_amount is flat amount (e.g., 50 flat defense)
+                        "duration_turns": buff_duration
+                    }
+                    self.apply_buff(buff_data)
+
+                elif buff_stat == "evasion": # Rogue Evasion
+                    buff_data = {
+                    "name": ability_name,
+                    "stat": "evasion_buff",
+                    "amount": buff_amount,
+                    "duration_turns": buff_duration,
+                    "is_percentage_buff": True
+                    }
+                    self.apply_buff(buff_data)
+            elif ability_type == "heal": # Heal ability
+                heal_amount = ability["heal_amount"]
+                self.current_health = min(self.stats['health'], self.current_health + heal_amount) # Heal, but not over max HP
+                message_text=(f"{ability_name} heals {self.name} for {heal_amount} HP!")
+                add_combat_message(message_text)
+
+            elif ability_type == "multi_attack": # For abilities with multiple attacks (like Rogue's Double Attack - not used yet but prepared)
+                number_of_attacks = ability.get("number_of_attacks", 1) # Default to 1 attack if not specified
+                damage_multiplier = ability.get("damage_multiplier", 1.0)
+                for _ in range(number_of_attacks): # Loop for each attack
+                    damage = int(self.get_attack_damage() * damage_multiplier)
+                    damage_dealt = target.take_damage(damage)
+                    message_text=(f"{ability_name} hits {target.get_name()} for {damage_dealt} damage!")
+                    add_combat_message(message_text)
+            # After ability use, end player's turn
+            global player_turn
+            player_turn = False
+        else:
+            message_text=(f"{self.name} does not have enough mana to use {ability['name']}!")
+            add_combat_message(message_text)
     def get_evasion(self):
-        """Calculates player evasion, returning WHOLE NUMBER PERCENTAGE (0-100)."""
-        base_evasion_percentage = self.stats['evasion'] # Get base evasion as whole number percentage
-        buffed_evasion_percentage = base_evasion_percentage # Start with base percentage
+        buffed_evasion_percentage = self.stats['evasion']
+
         for buff in self.buffs:
-            if buff['stat'] == 'evasion_buff':
+            if buff.get('stat') == 'evasion_buff':
                 if buff.get('is_percentage_buff'):
-                    percentage_increase = buff['amount']
+                    percentage_increase = buff['buff_amount'] 
                     buffed_evasion_percentage += percentage_increase
                 else:
-                    buffed_evasion_percentage += buff['amount']
-        return buffed_evasion_percentage # <--- Return WHOLE NUMBER PERCENTAGE (0-100)
+                    buffed_evasion_percentage += buff['buff_amount'] 
+        return buffed_evasion_percentage
     def get_accuracy(self):
-        """Calculates player accuracy, returning WHOLE NUMBER PERCENTAGE (0-100)."""
-        accuracy_percentage_whole_number = self.stats['accuracy'] # Get accuracy as whole number percentage from stats
-        return accuracy_percentage_whole_number # <--- Return WHOLE NUMBER PERCENTAGE directly
+        accuracy_percentage_whole_number = self.stats['accuracy'] 
+        return accuracy_percentage_whole_number 
     def is_alive(self):
-        """Checks if the player's health is above 0."""
         return self.current_health > 0
     def gain_experience(self, xp):
-        """Awards experience points and handles level ups."""
         self.experience += xp
-        if self.experience >= self.max_experience: # Use self.max_experience here
+        if self.experience >= self.max_experience: 
             self.level_up()
-    def _calculate_max_experience(self): # Private method to calculate max_experience
-        """Calculates the experience needed for the next level."""
+    def _calculate_max_experience(self): 
         return (self.level ** 2) * 100
     def level_up(self):
-        """Handles player level up, increasing stats based on class."""
         if self.experience >= self.max_experience:
             self.level += 1
             self.experience -= self.max_experience
-            self.max_experience = int(self.max_experience * 1.5) # Increase XP needed for next level
+            self.max_experience = int(self.max_experience * 1.5) 
             level_up_stats = CLASS_LEVEL_UP_STATS[self.class_name]
             self.stats["health"] += level_up_stats["health"]
             self.stats["mana"] += level_up_stats["mana"]
-            # --- Handle Attack Range Level Up ---
-            attack_increase = level_up_stats["attack"] # Get the *increase* value from level up stats
-            current_attack_range = self.stats["attack"] # Get current attack range (list)
-            current_attack_range[0] += attack_increase # Increase the minimum of the range
-            current_attack_range[1] += attack_increase # Increase the maximum of the range
+            attack_increase = level_up_stats["attack"] 
+            current_attack_range = self.stats["attack"] 
+            current_attack_range[0] += attack_increase 
+            current_attack_range[1] += attack_increase 
             self.stats["defense"] += level_up_stats["defense"]
             self.stats["accuracy"] += level_up_stats["accuracy"]
             self.stats["evasion"] += level_up_stats["evasion"]
-            self.current_health = self.stats["health"] # Full heal on level up
-            self.current_mana = self.stats["mana"]     # Full mana on level up
+            self.current_health = self.stats["health"] 
+            self.current_mana = self.stats["mana"]    
             message_text=(f"{self.name} leveled up to Level {self.level}!")
             add_combat_message(message_text)
     def gain_coins(self, gold):
@@ -337,9 +398,8 @@ class Player:
         for buff in buffs_to_remove:
             self.buffs.remove(buff)
     def start_turn(self):
-        self.update_buff_durations() # Update buff durations at start of turn
+        self.update_buff_durations() 
     def end_turn(self):
-        """Actions to perform at the end of the player's turn."""
         pass # No end of turn actions for now, but can be extended later
     def show_inventory(self):
         if not self.inventory:
@@ -350,7 +410,6 @@ class Player:
                 print(f"- {item}") 
     def add_item_to_inventory(self, item_name):
         self.inventory.append(item_name)
-        print(f"You added {item_name} to your inventory.")
 CLASS_STATS = {
     "Warrior": {
         "health": 50,
@@ -379,19 +438,19 @@ CLASS_STATS = {
 }
 CLASS_LEVEL_UP_STATS = {
     "Warrior": {
-        "health": 15,  # Warriors gain more health per level
-        "mana": 3,     # Less mana gain
-        "attack": 3,   # Good attack gain
-        "defense": 2,  # Moderate defense gain
+        "health": 15,  
+        "mana": 3,    
+        "attack": 3,   
+        "defense": 2,  
         "accuracy": 1,
         "evasion": 1
     },
     "Mage": {
         "health": 10,
-        "mana": 7,     # Mages gain more mana per level
-        "attack": 1,   # Lower attack gain
-        "defense": 1,  # Lower defense gain
-        "accuracy": 2, # Mages might gain more accuracy
+        "mana": 7,     
+        "attack": 1,   
+        "defense": 1,  
+        "accuracy": 2, 
         "evasion": 1
     },
     "Rogue": {
@@ -399,8 +458,8 @@ CLASS_LEVEL_UP_STATS = {
         "mana": 5,
         "attack": 2,
         "defense": 1,
-        "accuracy": 2, # Rogues could gain more accuracy
-        "evasion": 2   # Rogues could gain more evasion
+        "accuracy": 2, 
+        "evasion": 2  
     }
 }
 CLASS_ABILITIES = {
@@ -487,68 +546,118 @@ CLASS_ABILITIES = {
         },
     ],
 }
+def draw_outlined_text(surface, text, font, color, outline_color, position):
+    """Draws text with an outline for better readability."""
+    text_surface = font.render(text, True, color)
+    text_rect = text_surface.get_rect(topleft=position)
+    outline_thickness = 2 # Adjust for thicker/thinner outline
+
+    # --- Draw Outline ---
+    for dx in [-outline_thickness, 0, outline_thickness]:
+        for dy in [-outline_thickness, 0, outline_thickness]:
+            if dx == 0 and dy == 0: # Skip the center position (main text handles it)
+                continue
+            outline_pos = (text_rect.x + dx, text_rect.y + dy)
+            outline_surface = font.render(text, True, outline_color)
+            surface.blit(outline_surface, outline_pos)
+
+    # --- Draw Main Text ---
+    surface.blit(text_surface, position)
 def render_status_bar():
-    global player
+    global player, screen
     pygame.draw.rect(screen, GRAY, STATUS_BAR_RECT)
 
+    OUTLINE_COLOR = BLACK
+    TEXT_COLOR = WHITE
+
+    def draw_outlined_text(surface, text, font, color, outline_color, position): # <--- NO CHANGE HERE - FUNCTION IS FINE
+        """Draws text with an outline for better readability."""
+        text_surface = font.render(text, True, color)
+        text_rect = text_surface.get_rect(topleft=position)
+        outline_thickness = 2 # Adjust for thicker/thinner outline
+
+        # --- Draw Outline ---
+        for dx in [-outline_thickness, 0, outline_thickness]:
+            for dy in [-outline_thickness, 0, outline_thickness]:
+                if dx == 0 and dy == 0: # Skip the center position (main text handles it)
+                    continue
+                outline_pos = (text_rect.x + dx, text_rect.y + dy)
+                outline_surface = font.render(text, True, outline_color)
+                surface.blit(outline_surface, outline_pos)
+
+        # --- Draw Main Text ---
+        surface.blit(text_surface, position)
+
+
     # --- XP Bar (Top of Status Bar, Full Width) ---
-    exp_bar_width = STATUS_BAR_RECT.width  # Full width of status bar
+    exp_bar_width = STATUS_BAR_RECT.width
     exp_bar_height = 10
-    exp_bar_x = STATUS_BAR_RECT.x  # Start at the left edge of status bar
-    exp_bar_y = STATUS_BAR_RECT.y  # Top of status bar, with padding
+    exp_bar_x = STATUS_BAR_RECT.x
+    exp_bar_y = STATUS_BAR_RECT.y
     exp_ratio = player.experience / player.max_experience
     current_exp_width = int(exp_bar_width * exp_ratio)
     pygame.draw.rect(screen, BLACK, (exp_bar_x, exp_bar_y, exp_bar_width, exp_bar_height))
     pygame.draw.rect(screen, PURPLE, (exp_bar_x, exp_bar_y, current_exp_width, exp_bar_height))
-    exp_text = SMALL_FONT.render(f"XP: {player.experience}/{player.max_experience}", True, WHITE)
-    exp_text_rect = exp_text.get_rect(center=(exp_bar_x + exp_bar_width // 2, exp_bar_y + exp_bar_height // 2))
-    screen.blit(exp_text, exp_text_rect)
+    exp_text_str = f"XP: {player.experience}/{player.max_experience}"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    exp_text_surface = SMALL_FONT.render(exp_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    exp_text_rect = exp_text_surface.get_rect(center=(exp_bar_x + exp_bar_width // 2, exp_bar_y + exp_bar_height // 2)) # Get rect from SURFACE
+    draw_outlined_text(screen, exp_text_str, SMALL_FONT, TEXT_COLOR, OUTLINE_COLOR, exp_text_rect.topleft)
+
 
     # --- Character Name and Class (Side-by-Side above HP Bar) ---
     stats_x = 50
-    stats_y = exp_bar_y + exp_bar_height + 10  # Position below XP bar, with padding
+    stats_y = exp_bar_y + exp_bar_height + 10
     stat_font = pygame.font.Font(None, 20)
-    line_spacing = 20  # Define line spacing for stats
+    line_spacing = 20
+    name_text_str = f"Name: {player.name}"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    name_text_surface = stat_font.render(name_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    name_rect = name_text_surface.get_rect(topleft=(stats_x, stats_y))
+    draw_outlined_text(screen, name_text_str, stat_font, TEXT_COLOR, OUTLINE_COLOR, name_rect.topleft)
 
-    name_text = stat_font.render(f"Name: {player.name}", True, WHITE)
-    name_rect = name_text.get_rect(topleft=(stats_x, stats_y))  # Get rect for positioning
-    screen.blit(name_text, name_rect)
+    class_text_str = f"Class: {player.class_name}"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    class_text_surface = stat_font.render(class_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    class_rect = class_text_surface.get_rect(topleft=(name_rect.right + 10, stats_y))
+    draw_outlined_text(screen, class_text_str, stat_font, TEXT_COLOR, OUTLINE_COLOR, class_rect.topleft)
 
-    class_text = stat_font.render(f"Class: {player.class_name}", True, WHITE)
-    class_rect = class_text.get_rect(topleft=(name_rect.right + 10, stats_y))  # Position to the right of name with 10px spacing
-    screen.blit(class_text, class_rect)
 
     # --- Health and Mana Bars (Below Name and Class) ---
     health_bar_width = 200
     health_bar_height = 20
     health_bar_x = 50
-    health_bar_y = stats_y + line_spacing + 10  # Position below Name/Class line, using line_spacing
+    health_bar_y = stats_y + line_spacing + 10
     health_ratio = player.current_health / player.stats["health"]
     current_health_width = int(health_bar_width * health_ratio)
     pygame.draw.rect(screen, RED, (health_bar_x, health_bar_y, health_bar_width, health_bar_height))
     pygame.draw.rect(screen, GREEN, (health_bar_x, health_bar_y, current_health_width, health_bar_height))
-    health_text = SMALL_FONT.render(f"HP: {player.current_health}/{player.stats['health']}", True, WHITE)
-    health_text_rect = health_text.get_rect(center=(health_bar_x + health_bar_width // 2, health_bar_y + health_bar_height // 2))
-    screen.blit(health_text, health_text_rect)
+    health_text_str = f"HP: {player.current_health}/{player.stats['health']}"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    health_text_surface = SMALL_FONT.render(health_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    health_text_rect = health_text_surface.get_rect(center=(health_bar_x + health_bar_width // 2, health_bar_y + health_bar_height // 2))
+    draw_outlined_text(screen, health_text_str, SMALL_FONT, TEXT_COLOR, OUTLINE_COLOR, health_text_rect.topleft)
 
     mana_bar_width = 200
     mana_bar_height = 20
     mana_bar_x = 50
-    mana_bar_y = health_bar_y + health_bar_height + 5  # Position below health bar, with spacing
+    mana_bar_y = health_bar_y + health_bar_height + 5
     mana_ratio = player.current_mana / player.stats["mana"]
     current_mana_width = int(mana_bar_width * mana_ratio)
     pygame.draw.rect(screen, BLACK, (mana_bar_x, mana_bar_y, mana_bar_width, mana_bar_height))
     pygame.draw.rect(screen, BLUE, (mana_bar_x, mana_bar_y, current_mana_width, mana_bar_height))
-    mana_text = SMALL_FONT.render(f"MP: {player.current_mana}/{player.stats['mana']}", True, WHITE)
-    mana_text_rect = mana_text.get_rect(center=(mana_bar_x + mana_bar_width // 2, mana_bar_y + mana_bar_height // 2))
-    screen.blit(mana_text, mana_text_rect)
+    mana_text_str = f"MP: {player.current_mana}/{player.stats['mana']}"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    mana_text_surface = SMALL_FONT.render(mana_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    mana_text_rect = mana_text_surface.get_rect(center=(mana_bar_x + mana_bar_width // 2, mana_bar_y + health_bar_height // 2))
+    draw_outlined_text(screen, mana_text_str, SMALL_FONT, TEXT_COLOR, OUTLINE_COLOR, mana_text_rect.topleft)
+
 
     # --- Character Stats (Attack, Defense, Dodge - Right of HP/Mana) ---
-    stats_x_right = health_bar_x + health_bar_width + 40  # X position to the right of mana bar, adjust 40 as needed
-    stats_y_right = stats_y # Align vertically with Name/Class line
+    stats_x_right = health_bar_x + health_bar_width + 40
+    stats_y_right = stats_y
     stat_font = pygame.font.Font(None, 20)
-    attack_defense_stats_y_right = stats_y_right # Use a separate Y offset for these stats
-
+    attack_defense_stats_y_right = stats_y_right
     attack_range = player.stats['attack']
     min_attack_value = attack_range[0]
     max_attack_value = attack_range[1]
@@ -562,43 +671,72 @@ def render_status_bar():
             else:
                 buffed_min_attack += buff['amount']
                 buffed_max_attack += buff['amount']
-
     buffed_min_attack = int(buffed_min_attack * percentage_attack_buff_multiplier)
     buffed_max_attack = int(buffed_max_attack * percentage_attack_buff_multiplier)
-
     attack_range_string = f"Attack: {buffed_min_attack}-{buffed_max_attack}"
-    attack_stat_text = stat_font.render(attack_range_string, True, WHITE)
-    screen.blit(attack_stat_text, (stats_x_right, attack_defense_stats_y_right))
-    attack_defense_stats_y_right += line_spacing # Increment Y position for next stat
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    attack_stat_text_surface = stat_font.render(attack_range_string, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    attack_stat_text_rect = attack_stat_text_surface.get_rect(topleft=(stats_x_right, attack_defense_stats_y_right))
+    draw_outlined_text(screen, attack_range_string, stat_font, TEXT_COLOR, OUTLINE_COLOR, attack_stat_text_rect.topleft)
 
+    attack_defense_stats_y_right += line_spacing
     defense_value = player.get_defense()
-    defense_text = stat_font.render(f"Defense: {defense_value}", True, WHITE)
-    screen.blit(defense_text, (stats_x_right, attack_defense_stats_y_right))
-    attack_defense_stats_y_right += line_spacing # Increment Y position for next stat
-
+    defense_text_str = f"Defense: {defense_value}"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    defense_text_surface = stat_font.render(defense_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    defense_text_rect = defense_text_surface.get_rect(topleft=(stats_x_right, attack_defense_stats_y_right))
+    draw_outlined_text(screen, defense_text_str, stat_font, TEXT_COLOR, OUTLINE_COLOR, defense_text_rect.topleft)
+    attack_defense_stats_y_right += line_spacing
     # --- DODGE CHANCE ---
     dodge_chance = player.get_evasion()
-    dodge_text = stat_font.render(f"Dodge: {dodge_chance}%", True, WHITE)
-    screen.blit(dodge_text, (stats_x_right, attack_defense_stats_y_right))
-    attack_defense_stats_y_right += line_spacing # Increment Y position for next stat
-
+    dodge_text_str = f"Dodge: {dodge_chance}%"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    dodge_text_surface = stat_font.render(dodge_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    dodge_text_rect = dodge_text_surface.get_rect(topleft=(stats_x_right, attack_defense_stats_y_right))
+    draw_outlined_text(screen, dodge_text_str, stat_font, TEXT_COLOR, OUTLINE_COLOR, dodge_text_rect.topleft)
+    attack_defense_stats_y_right += line_spacing
     # --- Coins (Below Dodge) ---
-    coin_text = SMALL_FONT.render(f"Coins: {player.coins}", True, WHITE)
-    screen.blit(coin_text, (stats_x_right, attack_defense_stats_y_right)) # Position below Dodge
+    coin_text_str = f"Coins: {player.coins}"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    coin_text_surface = SMALL_FONT.render(coin_text_str, True, TEXT_COLOR) # <--- RENDER TEXT HERE
+    coin_text_rect = coin_text_surface.get_rect(topleft=(stats_x_right, attack_defense_stats_y_right))
+    draw_outlined_text(screen, coin_text_str, SMALL_FONT, TEXT_COLOR, OUTLINE_COLOR, coin_text_rect.topleft)
 
-    # --- Buffs Display Section ---
-    buff_display_x = 540
-    buff_display_y = SCREEN_HEIGHT - STATUS_BAR_HEIGHT - 100
-    buff_title_text = stat_font.render("Buffs:", True, BLACK)
-    screen.blit(buff_title_text, (buff_display_x, buff_display_y))
-    buff_display_y += line_spacing
+
+    # --- NEW BUFF TEXT LIST DISPLAY SECTION ABOVE BUTTONS ---
+    buff_list_rect_x = BUTTON1_RECT.x
+    buff_list_rect_y = BUTTON1_RECT.y - 120
+    buff_list_rect_width = BUTTON4_RECT.right - BUTTON1_RECT.left
+    buff_list_rect_height = 100
+    BUFF_TEXT_LIST_RECT = pygame.Rect(buff_list_rect_x, buff_list_rect_y, buff_list_rect_width, buff_list_rect_height)
+
+    # --- ADD BACKGROUND FILL FOR BUFF TEXT LIST RECTANGLE ---
+    BUFF_BOX_BACKGROUND_COLOR = (150, 150, 150)
+    pygame.draw.rect(screen, BUFF_BOX_BACKGROUND_COLOR, BUFF_TEXT_LIST_RECT)
+    pygame.draw.rect(screen, GRAY, BUFF_TEXT_LIST_RECT, 1)
+
+    buff_list_text_x = BUFF_TEXT_LIST_RECT.x + 10
+    buff_list_text_y = BUFF_TEXT_LIST_RECT.y + 10
+    buff_text_line_spacing = 18
+    current_buff_text_y = buff_list_text_y
+
+    buff_list_title_text_str = "Active Buffs:"
+    # --- RENDER TEXT TO SURFACE FIRST ---
+    buff_list_title_text_surface = stat_font.render(buff_list_title_text_str, True, BLACK) # Title in black
+    buff_list_title_rect = buff_list_title_text_surface.get_rect(topleft=(buff_list_text_x, current_buff_text_y))
+    draw_outlined_text(screen, buff_list_title_text_str, stat_font, BLACK, WHITE, buff_list_title_rect.topleft) # Outlined title (Black main, White outline - reversed colors)
+    current_buff_text_y += buff_text_line_spacing + 5
 
     for buff in player.buffs:
-        buff_text = stat_font.render(f"- {buff['name']} ({buff['duration_turns']} turns)", True, WHITE)
-        screen.blit(buff_text, (buff_display_x, buff_display_y))
-        buff_display_y += line_spacing
+        buff_text_str = f"- {buff['name']} ({buff['duration_turns']} turns)"
+        # --- RENDER TEXT TO SURFACE FIRST ---
+        buff_text_surface = stat_font.render(buff_text_str, True, TEXT_COLOR) # Buff text in white
+        buff_text_rect = buff_text_surface.get_rect(topleft=(buff_list_text_x, current_buff_text_y))
+        draw_outlined_text(screen, buff_text_str, stat_font, TEXT_COLOR, OUTLINE_COLOR, buff_text_rect.topleft)
+        current_buff_text_y += buff_text_line_spacing
 
-    # --- Buttons ---
+
+    # --- Buttons --- (No change)
     pygame.draw.rect(screen, WHITE, BUTTON1_RECT)
     pygame.draw.rect(screen, WHITE, BUTTON2_RECT)
     pygame.draw.rect(screen, WHITE, BUTTON3_RECT)
@@ -614,17 +752,15 @@ def render_status_bar():
         screen.blit(button2_text, button2_text.get_rect(center=BUTTON2_RECT.center))
         screen.blit(button3_text, button3_text.get_rect(center=BUTTON3_RECT.center))
         screen.blit(button4_text, button4_text.get_rect(center=BUTTON4_RECT.center))
-
     render_combat_buttons()
-    
-def render_monster_status_bar():  # <---- Function to render MONSTER status bar at TOP in combat
-    global current_enemy  # <--- Access current_enemy
 
-    if current_enemy:  # <--- Only render if there is a current enemy
-        status_bar_x = 0  # Top-left X position
-        status_bar_y = 0  # Top-left Y position at the TOP
-        status_bar_width = SCREEN_WIDTH  # Status bar width to match screen width <---- Screen width now
-        status_bar_height = 80  # Reduced status bar height <---- Shorter height
+def render_monster_status_bar():
+    global current_enemy 
+    if current_enemy:  
+        status_bar_x = 0  
+        status_bar_y = 0  
+        status_bar_width = SCREEN_WIDTH  
+        status_bar_height = 80  
         STATUS_BAR_RECT = pygame.Rect(status_bar_x, status_bar_y, status_bar_width, status_bar_height)
 
         pygame.draw.rect(screen, GRAY, STATUS_BAR_RECT)  # Background
@@ -752,58 +888,55 @@ class Monster:
         self.abilities = abilities
 
     def choose_ability(self, target):
-        """Monster chooses an ability to use, or defaults to normal attack."""
         if not self.abilities:
             return None
-
         ability_chance = 0.3
         if random.random() < ability_chance:
             ability_set_name = self.abilities[0]
             ability_choices = MONSTER_ABILITIES.get(ability_set_name)
             if ability_choices:
                 chosen_ability = random.choice(ability_choices)
-                print(f"{self.name} chooses to use ability: {chosen_ability['name']}")
                 return chosen_ability
         return None
 
     def use_ability(self, ability, target):
-        """Executes a monster ability against a target."""
+        ability_name = ability['name']
         if ability['type'] == 'attack':
             damage_multiplier = ability.get('damage_multiplier', 1.0)
             base_damage = self.get_attack_damage()
             damage = max(0, int(base_damage * damage_multiplier) - target.get_defense())
             damage_dealt = target.take_damage(damage)
-            print(f"{self.name} uses **{ability['name']}** and hits you for {damage_dealt} damage!")
-
+            message_text = (f"{self.name} uses {ability_name} and hits you for {damage_dealt} damage!") # <--- MESSAGE including ability name and damage
+            add_combat_message(message_text) # <--- ADD add_combat_message to log damage from ability
         elif ability['type'] == 'buff':
             buff_stat = ability['stat']
             buff_amount = ability['buff_amount']
             duration_turns = ability['duration_turns']
             buff_name = ability['name']
-            buff_dict = {
-                'name': buff_name,
+            buff_dict = { # <--- CORRECT WAY TO CREATE buff_dict - DICTIONARY
+                'name': ability_name, # or buff_name if ability_name and buff_name are the same here
                 'stat': buff_stat,
-                'amount': buff_amount,
+                'buff_amount': buff_amount,
                 'duration_turns': duration_turns,
-                'is_percentage_buff': True if buff_stat.endswith('_buff') else False
+                'buff_type': 'ability' # You can add 'buff_type' here to differentiate from other buff sources if needed
             }
+            print("Monster Buff Ability - Debug Info:") # <--- ADD DEBUG PRINTING
+            print("  Ability Name:", ability_name)
+            print("  Buff Stat:", buff_stat)
+            print("  Buff Amount:", buff_amount) # <--- Check if buff_amount is being printed and is valid
+            print("  Buff Dict:", buff_dict) 
             self.apply_buff(buff_dict)
-            print(f"{self.name} uses **{ability['name']}** and buffs its {buff_stat} by {buff_amount*100}% for {duration_turns} turns!")
-
+            message_text = (f"{self.name} uses {ability_name} and buffs its {buff_stat} by {buff_amount*100}% for {duration_turns} turns!")
+            add_combat_message(message_text)
         elif ability['type'] == 'debuff':
             debuff_stat = ability['stat']
             debuff_amount = ability['buff_amount']
             duration_turns = ability['duration_turns']
             debuff_name = ability['name']
-            debuff_dict = {
-                'name': debuff_name,
-                'stat': debuff_stat,
-                'amount': debuff_amount,
-                'duration': duration_turns,
-                'is_percentage_buff': True if debuff_stat.endswith('_buff') else False
-            }
+            debuff_dict = { ... } # Debuff dict - no change
             target.apply_buff(debuff_dict)
-            print(f"{self.name} uses **{ability['name']}** and debuffs your {debuff_stat} by {abs(debuff_amount)*100}% for {duration_turns} turns!")
+            message_text = (f"{self.name} uses {ability_name} and debuffs your {debuff_stat} by {abs(debuff_amount)*100}% for {duration_turns} turns!")
+            add_combat_message(message_text)
         else:
             print(f"{self.name} tried to use unknown ability type: {ability['type']}")
 
@@ -878,16 +1011,23 @@ class Monster:
         return buffed_accuracy_percentage
 
     def get_evasion(self):
-        """Retrieves monster evasion, including buffs, returning WHOLE NUMBER PERCENTAGE (0-100)."""
-        base_evasion_percentage = self.stats['evasion']
-        buffed_evasion_percentage = base_evasion_percentage
-        for buff in self.buffs: # <--- Iterate through buffs, not statuses
+        print(f"\n--- get_evasion() called for: {self.name} (Class: {self.__class__.__name__}) ---")
+        print(f"  Current buffs: {self.buffs}")
+        buffed_evasion_percentage = self.stats['evasion']
+
+        for buff in self.buffs:
+            print(f"    Inspecting buff: {buff}")
             if buff.get('stat') == 'evasion_buff':
+                print(f"      Found evasion buff: {buff}")
+                if 'buff_amount' in buff: # <--- CORRECTED: Check for 'buff_amount' key
+                    print(f"        Buff *does* have 'buff_amount' key: {buff['buff_amount']}") # <--- CORRECTED: Access 'buff_amount'
+                else:
+                    print(f"        !!!!!!!!!!! WARNING: BUFF IS MISSING 'buff_amount' KEY !!!!!!!!!!!: {buff}")
                 if buff.get('is_percentage_buff'):
-                    percentage_increase = buff['amount']
+                    percentage_increase = buff['buff_amount'] # <--- CORRECTED: Access 'buff_amount'
                     buffed_evasion_percentage += percentage_increase
                 else:
-                    buffed_evasion_percentage += buff['amount']
+                    buffed_evasion_percentage += buff['buff_amount'] # <--- CORRECTED: Access 'buff_amount'
         return buffed_evasion_percentage
 
     def update_buff_durations(self):
@@ -904,28 +1044,32 @@ class Monster:
     def attack(self, target):
         """Monster attacks a target (player)."""
         if self.is_stunned():
+            message_text = (f"{self.get_name()} is stunned and cannot attack!")
+            add_combat_message(message_text)
             print(f"{self.get_name()} is stunned and cannot attack!")
             return 0
 
-        # --- 1. Accuracy Check ---
+        # --- Accuracy Check ---
         accuracy_roll = random.random()
-        monster_accuracy_percentage = self.get_accuracy() # Get as whole percentage
-        monster_accuracy_decimal = monster_accuracy_percentage / 100.0 # Convert to decimal
+        monster_accuracy_percentage = self.get_accuracy()
+        monster_accuracy_decimal = monster_accuracy_percentage / 100.0
 
         print(f"Debug (Accuracy Check): Monster: {self.get_name()}, Accuracy Roll: {accuracy_roll:.2f}, Monster Accuracy: {int(monster_accuracy_percentage)}%")
 
         if accuracy_roll < monster_accuracy_decimal:
             print(f"Debug (Accuracy Check): Accuracy check passed for {self.get_name()}.")
 
-            # --- 2. Evasion Check ---
+            # --- Evasion Check ---
             evasion_roll = random.random()
-            player_evasion_percentage = target.get_evasion() # Player evasion as whole percentage
-            player_evasion_decimal = player_evasion_percentage / 100.0 # Convert to decimal
+            player_evasion_percentage = target.get_evasion()
+            player_evasion_decimal = player_evasion_percentage / 100.0
 
             print(f"Debug (Evasion Check): Monster: {self.get_name()}, Player: {target.get_name()}, Evasion Roll: {evasion_roll:.2f}, Player Evasion: {int(player_evasion_percentage)}%")
 
             if evasion_roll < player_evasion_decimal:
-                print(f"{target.get_name()} **DODGED** the attack from {self.get_name()}!")
+                message_text = (f"{target.get_name()} dodged the attack from the {self.get_name()}!") # Message for DODGE
+                add_combat_message(message_text)
+                print(f"{target.get_name()} dodged the attack from the {self.get_name()}!")
                 return 0
 
             else: # Hit and Damage
@@ -935,15 +1079,20 @@ class Monster:
                 damage = max(0, base_damage - target.get_defense())
                 print(f"Debug: {self.get_name()} attacks {target.get_name()}, Damage: {damage}")
                 damage_dealt = target.take_damage(damage)
-                if damage_dealt > 0:
-                    print(f"{self.get_name()} attacks you and **HIT** for {damage_dealt} damage!")
-                else:
-                    print(f"{self.get_name()} attacks you but deals no damage!")
+                if damage_dealt > 0: # Damage was actually dealt (after defense)
+                    message_text = (f"{self.get_name()} attacks you for {damage_dealt} damage!") # Message for DAMAGE dealt
+                    add_combat_message(message_text)
+                    print(f"{self.get_name()} attacks you and for {damage_dealt} damage!")
+                else: # Damage was zero because of defense
+                    message_text = (f"{self.get_name()}'s attack was blocked by your defense!") # <--- NEW MESSAGE: Attack BLOCKED by defense
+                    add_combat_message(message_text)
+                    print(f"{self.get_name()} attacks you but deals no damage!") # Keep print if needed
                 return damage_dealt
         else: # Miss due to inaccuracy
-            print(f"Debug (Accuracy Check): Accuracy check failed - **MISSED** due to inaccuracy.")
-            print(f"{self.get_name()} **MISSED** you!")
+            message_text = (f"{self.get_name()} attacks but misses you!") # Message for TRUE MISS due to inaccuracy
+            add_combat_message(message_text)
             return 0
+            
 def get_monster_stat_multiplier_by_floor(roomlvl): # Use roomlvl as parameter
     """Calculates monster stat multiplier based on dungeon roomlvl."""
     multiplier = 1.0 + (roomlvl) * 0.25  # 25% increase per roomlvl
@@ -1164,13 +1313,13 @@ MONSTER_ABILITIES = {
         },
         {
             "name": "Nimble Dodge",
-            "description": "A quick dodge, increasing evasion for 2 turns.", # Corrected description
+            "description": "A quick dodge, increasing evasion for 2 turns.",
             "type": "buff",
-            "stat": "evasion_buff",  # <--- CORRECTED to "evasion_buff"
-            "buff_amount": 15,      # <--- CORRECTED to whole number percentage (15%)
+            "stat": "evasion_buff", 
+            "buff_amount": 15, 
             "duration_turns": 2,
-            "is_percentage_buff": True # <--- ADDED to specify percentage buff
-        },
+            "is_percentage_buff": True 
+        }
     ],
     "Orc Abilities": [  # Abilities for Orcs - this name is referenced in monster_data for Orc
         {
@@ -1801,35 +1950,35 @@ def create_room_dictionary(roomlvl): # <--- Added roomlvl parameter to create_ro
     return rooms
 rooms = create_room_dictionary(roomlvl)
 REST_OPTIONS = {
-    "rough_couch": {
-        "name": "Rough Couch",
+    "Barn Loft": {
+        "name": "Barn Loft",
         "cost": 5,
         "hp_restore": 20,
         "mana_restore": 30,       # <--- ADD MANA RESTORE VALUE
-        "attack_boost_percentage": 0.05,
+        "attack_boost_percentage": 0.1,
         "defense_boost_percentage": 0.0,
         "duration": 5,
-        "description": "A worn, lumpy couch. Better than the floor." 
+        "description": "Might roll on a needle." 
     },
-    "cozy_bed": {
-        "name": "Cozy Bed",
+    "Simple Room": {
+        "name": "Simple Room",
         "cost": 15,
         "hp_restore": 50,
         "mana_restore": 40,       # <--- ADD MANA RESTORE VALUE
-        "attack_boost_percentage": 0.10,
-        "defense_boost_percentage": 0.05,
+        "attack_boost_percentage": 0.30,
+        "defense_boost_percentage": 0.1,
         "duration": 8,
-        "description": "A soft bed with fresh linens. Quite comfortable."
+        "description": "A soft bed with fresh linens."
     },
-    "luxurious_suite": {
-        "name": "Luxurious Suite",
+    "Private Room": {
+        "name": "Private Room",
         "cost": 30,
         "hp_restore": 100,
         "mana_restore": 100,       # <--- ADD MANA RESTORE VALUE
-        "attack_boost_percentage": 0.20,
-        "defense_boost_percentage": 0.10,
+        "attack_boost_percentage": 0.50,
+        "defense_boost_percentage": 0.20,
         "duration": 12,
-        "description": "The finest room in the tavern. Pure luxury." 
+        "description": "Even comes with company..." 
     }
 }
 #PLAYER ACTIONS
@@ -1872,73 +2021,6 @@ def apply_rest_buff(player, rest_option):
             "buff_type": "rest" # <---- SET buff_type to "rest" - CRUCIAL!
         }
         player.apply_buff(defense_buff_data)     
-def use_ability(ability, caster, target):
-    """Handles ability use, applying effects based on ability type."""
-    if caster.use_mana(ability["mana_cost"]):
-        ability_name = ability["name"]
-        message_text=(f"{caster.name} uses {ability_name}!")
-        add_combat_message(message_text)
-        ability_type = ability["type"]
-        if ability_type == "attack" or ability_type == "magic_attack": # Handle both attack types similarly for now
-            damage_multiplier = ability.get("damage_multiplier", 1.0) # Default multiplier to 1.0 if not specified
-            damage = int(caster.get_attack_damage() * damage_multiplier)
-            if ability_type == "magic_attack":
-                damage = int(damage * 3) # Example: Magic attacks do 20% more base damage for now - balance later
-            damage_dealt = target.take_damage(damage)
-            message_text=(f"{ability_name} hits {target.get_name()} for {damage_dealt} damage!")
-            add_combat_message(message_text)
-        elif ability_type == "buff":
-            buff_stat = ability["stat"]
-            buff_amount = ability["buff_amount"]
-            buff_duration = ability.get("duration", 3) # Default duration if not specified
-            buff_name = ability_name # Use ability name as buff name
-            if buff_stat == "defense": # Warrior Defensive Stance
-                buff_data = {
-                    "name": buff_name,
-                    "stat": "defense_buff", # Use "defense_buff" for consistency
-                    "amount": buff_amount, # buff_amount is a multiplier (e.g., 0.5 for 50% increase)
-                    "duration_turns": buff_duration,
-                    "is_percentage_buff": True
-                }
-                caster.apply_buff(buff_data)
-            elif buff_stat == "magic_shield": # Mage Magic Shield (flat buff) - corrected stat name
-                buff_data = {
-                    "name": buff_name,
-                    "stat": "defense_buff", #  Using defense_buff for magic shield too - adjust logic if needed later
-                    "amount": buff_amount, # buff_amount is flat amount (e.g., 50 flat defense)
-                    "duration_turns": buff_duration
-                }
-                caster.apply_buff(buff_data)
-
-            elif buff_stat == "evasion": # Rogue Evasion
-                buff_data = {
-                "name": ability_name,
-                "stat": "evasion_buff",
-                "amount": buff_amount,
-                "duration_turns": buff_duration,
-                "is_percentage_buff": True
-                }
-                caster.apply_buff(buff_data)
-        elif ability_type == "heal": # Heal ability
-            heal_amount = ability["heal_amount"]
-            caster.current_health = min(caster.stats['health'], caster.current_health + heal_amount) # Heal, but not over max HP
-            message_text=(f"{ability_name} heals {caster.name} for {heal_amount} HP!")
-            add_combat_message(message_text)
-
-        elif ability_type == "multi_attack": # For abilities with multiple attacks (like Rogue's Double Attack - not used yet but prepared)
-            number_of_attacks = ability.get("number_of_attacks", 1) # Default to 1 attack if not specified
-            damage_multiplier = ability.get("damage_multiplier", 1.0)
-            for _ in range(number_of_attacks): # Loop for each attack
-                damage = int(caster.get_attack_damage() * damage_multiplier)
-                damage_dealt = target.take_damage(damage)
-                message_text=(f"{ability_name} hits {target.get_name()} for {damage_dealt} damage!")
-                add_combat_message(message_text)
-        # After ability use, end player's turn
-        global player_turn
-        player_turn = False
-    else:
-        message_text=(f"{caster.name} does not have enough mana to use {ability['name']}!")
-        add_combat_message(message_text)
 def descend_staircase():
     global current_room_id, roomlvl, rooms, player_room_count, CURRENT_STATE, current_enemy, player_turn # <--- Include CURRENT_STATE, current_enemy, player_turn in globals
     print("You descend the staircase...")
@@ -1991,13 +2073,13 @@ def reset_game_state():
     # --- 2. Regenerate Dungeon ---
     roomlvl = 0  # Reset to starting dungeon level (usually 0 or 1)
     player_room_count = 0 # Reset room exploration count
-    rooms = create_room_dictionary(roomlvl) # **Crucially, regenerate the dungeon rooms!**
+    rooms = create_room_dictionary(roomlvl) 
     current_room_id = "room1" # Set player to start at the first room of the new dungeon
     print("Dungeon regenerated.")
     # --- 3. Reset Combat State ---
-    current_enemy = None  # Clear any current enemy
-    CURRENT_STATE = MENU  # **Set game state back to DUNGEON (or TOWN, if you start in town)**
-    player_turn = True      # Reset player turn for combat (if applicable)
+    current_enemy = None  
+    CURRENT_STATE = MENU  
+    player_turn = True   
     print("Combat state reset.")
     print("Game state reset complete. Ready for a new game run.")
 def draw_rest_options_box():
@@ -2395,19 +2477,40 @@ def render_tavern_rest_menu():
             option_index += 1 # Move to the next button position
 
 def handle_rest_option_click(option_key):
-    global player, SHOW_REST_OPTIONS_BOX  # Ensure 'player' and 'SHOW_REST_OPTIONS_BOX' are declared as global
+    global player, SHOW_REST_OPTIONS_BOX  # Ensure globals are declared
 
-    selected_option = REST_OPTIONS[option_key]  # Get the data for the selected rest option from REST_OPTIONS
-    cost = selected_option["cost"]  # Extract the gold cost from the selected option data
+    selected_option = REST_OPTIONS[option_key]
+    cost = selected_option["cost"]
 
-    if player.coins >= cost:  # Check if the player has enough coins to afford the rest option
-        player.coins -= cost  # Deduct the cost from the player's coin balance
-        apply_rest_buff(player, selected_option)  
-        print(f"Player chose {selected_option['name']}. Cost: {cost} Gold. Buff applied.") 
+    if player.coins >= cost:
+        player.coins -= cost
+
+        print("--- handle_rest_option_click: Removing previous REST buffs (buff_type='rest') ---") # Updated debug print
+
+        rest_buffs_to_remove = []
+        for buff in player.buffs:
+            if buff.get('buff_type') == "rest": # <--- Check for buff_type == "rest"
+                print(f"  Found existing rest buff: {buff['name']}, type: {buff.get('buff_type')}") # Debug print with type
+                rest_buffs_to_remove.append(buff)
+
+        for buff_to_remove in rest_buffs_to_remove:
+            player.buffs.remove(buff_to_remove)
+            message_text = (f"Previous rest buff '{buff_to_remove['name']}' removed.")
+            add_combat_message(message_text)
+        print("--- handle_rest_option_click: Finished removing previous REST buffs (buff_type='rest') ---") # Updated debug print
+
+
+        # --- Apply the rest buff using the provided apply_rest_buff function ---
+        apply_rest_buff(player, selected_option) # Call the apply_rest_buff function
+        message_text = (f"{player.name} rests at the {selected_option['name']} and pays {cost} coins.")
+        add_combat_message(message_text)
+
     else:
-        print("Not enough gold to rest here!")  # Print "not enough gold" message to the console
+        message_text = ("Not enough coins to rest here.")
+        add_combat_message(message_text)
 
-    SHOW_REST_OPTIONS_BOX = False  # Regardless of success or failure, close the rest options box after the click
+    SHOW_REST_OPTIONS_BOX = False
+
 def handle_tavern_events(events):
     global CURRENT_STATE, SHOW_REST_OPTIONS_BOX, TAVERN_REST_EXIT_BUTTON_RECT
     for current_event in events:
@@ -2447,7 +2550,6 @@ def handle_shop_events(events): # <--- Parameter is now 'events' (plural - list 
             for i in range(len(SHOP_CATEGORIES)):
                 tab_rect = pygame.Rect(TAB_START_X + i * TAB_WIDTH, TAB_Y, TAB_WIDTH, TAB_HEIGHT)
                 if tab_rect.collidepoint(mouse_pos):
-                    print(f"Clicked on Tab: {SHOP_CATEGORIES[i]}")
                     current_shop_category_index = i
                     populate_shop_items()
             if BUTTON4_RECT.collidepoint(mouse_pos): 
@@ -2492,16 +2594,15 @@ def handle_dungeon_events(events): # <--- Parameter is now 'events' (plural - li
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 if BUTTON1_RECT.collidepoint(mouse_pos):
-                    print("Attack button clicked in Dungeon") # This will not be attack in future
+                    print("button1 button clicked in Dungeon") # This will not be attack in future
                 elif BUTTON2_RECT.collidepoint(mouse_pos):
-                    print("Abilities button clicked in Dungeon") # This will not be abilities in future
+                    print("Button2 button clicked in Dungeon") # This will not be abilities in future
                 elif BUTTON3_RECT.collidepoint(mouse_pos):
                     print("Deeper button clicked")
                     current_room = rooms[current_room_id]
                     if current_room["content"] == "staircase_down":
                         descend_staircase()
                     else:
-                        print("No staircase in this room.")
                         move()
                 elif BUTTON4_RECT.collidepoint(mouse_pos):
                     roomlvl=0
@@ -2520,83 +2621,92 @@ def handle_combat():
         render_combat_log()
 def handle_monster_turn(player, current_enemy):
     if current_enemy.is_stunned():
-        message_text=(f"{current_enemy.get_name()} is stunned and cannot act.")
+        message_text=(f"{current_enemy.get_name()} is stunned and cannot act.") # Keep stun message
         add_combat_message(message_text)
         current_enemy.update_buff_durations()
     else:
         current_enemy.update_buff_durations()
-        chosen_ability = current_enemy.choose_ability(player) # Monster chooses ability
+        chosen_ability = current_enemy.choose_ability(player)
         if chosen_ability:
-            current_enemy.use_ability(chosen_ability, player) 
+            current_enemy.use_ability(chosen_ability, player)
         else:
-            damage = current_enemy.attack(player) # Normal attack if no ability chosen
-            if damage > 0:
-                message_text=(f"{current_enemy.get_name()} attacks you for {damage} damage!") # Log enemy attack
-                add_combat_message(message_text)
-            else:
-                message_text=(f"{current_enemy.get_name()} misses you!") # Log enemy miss
-                add_combat_message(message_text)
-    # Player death check after monster's action
+            current_enemy.attack(player) 
     if player.current_health <= 0:
-        return False  
+        return False
     else:
-        return True  
-def handle_combat_events(events):  
-    global CURRENT_STATE, player_turn, current_enemy, combat_log_messages, ability_menu_open, roomlvl, player  #
-    mouse_pos = pygame.mouse.get_pos()  # Get mouse position outside the loop
-    for event in events: 
+        return True
+def handle_player_turn(player, current_enemy, action):
+    global CURRENT_STATE, player_turn, ability_menu_open, combat_log_messages, turn_counter
+
+    message_text = (f"----------------------------------- ")
+    add_combat_message(message_text)
+    player.start_turn() # Start player turn actions (buff updates, etc.)
+    if action == "attack": # <--- HANDLE "attack" ACTION
+        damage = player.attack(current_enemy) # Perform attack
+        player_turn = False # End player turn
+        player.end_turn() # End of player turn actions (buff expiry etc.)
+        if current_enemy.is_alive():
+            player_alive = handle_monster_turn(player, current_enemy) # Monster turn
+            if not player_alive:
+                CURRENT_STATE = GAME_OVER
+        player_turn = True # Prepare for next player turn
+
+
+    elif action == "abilities": # <--- HANDLE "abilities" ACTION
+        ability_menu_open = not ability_menu_open # Toggle ability menu
+
+
+    elif action == "run": # <--- HANDLE "run" ACTION
+        if random.random() < 0.4:
+            message_text=("Player successfully ran away!")
+            add_combat_message(message_text)
+            current_enemy = None
+            roomlvl = 0
+            CURRENT_STATE = TOWN # Go to town
+        else:
+            message_text=("Run failed! Monster attacks.")
+            add_combat_message(message_text)
+            player_turn = False # End player turn
+            player.end_turn() # End of player turn actions
+            if current_enemy.is_alive():
+                player_alive = handle_monster_turn(player, current_enemy) # Monster turn
+                if not player_alive:
+                    CURRENT_STATE = GAME_OVER
+            player_turn = True # Prepare for next player turn
+
+
+    elif action == "ability_menu_click": # <--- HANDLE "ability_menu_click" ACTION (when ability is chosen from menu)
+        ability_menu_open = False # Close ability menu # Assuming ability is already used in handle_combat_events in this case - adjust if needed!
+        player_turn = False
+        player.end_turn()
+        if current_enemy.is_alive():
+            player_alive = handle_monster_turn(player, current_enemy)
+            if not player_alive:
+                CURRENT_STATE = GAME_OVER
+        player_turn = True
+    return True # Default return - adjust as needed   
+def handle_combat_events(events):
+    global CURRENT_STATE, player_turn, current_enemy, combat_log_messages, ability_menu_open, roomlvl, player, turn_counter
+    mouse_pos = pygame.mouse.get_pos()
+    turn_counter = 1 
+    for event in events:
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # --- Check Button Clicks ---
                 if BUTTON1_RECT.collidepoint(mouse_pos):  # Attack Button
-                    if event.button == 1:
-                        if player_turn and not ability_menu_open:
-                            player.start_turn()
-                            damage = player.attack(current_enemy)
-                            if damage > 0:
-                                message_text=(f"You attack {current_enemy.get_name()} for {damage} damage!") 
-                                add_combat_message(message_text)
-                            player_turn = False
-                            player.end_turn()
-                            if current_enemy.is_alive():
-                                player_alive = handle_monster_turn(player, current_enemy)
-                                if not player_alive:
-                                    CURRENT_STATE = GAME_OVER
-                                player_turn = True  
+                    if player_turn and not ability_menu_open:
+                        handle_player_turn(player, current_enemy, "attack") # <--- CALL handle_player_turn with "attack" action
+
+
                 elif BUTTON2_RECT.collidepoint(mouse_pos):  # Abilities Button
-                    if event.button == 1:
-                        if player_turn:
-                            player.start_turn()  
-                            ability_menu_open = not ability_menu_open
-
-                elif BUTTON3_RECT.collidepoint(mouse_pos):  # Items Button
-                    if event.button == 1:
-                        print("Not in game yet")
-
+                    if player_turn:
+                        handle_player_turn(player, current_enemy, "abilities") # <--- CALL handle_player_turn with "abilities" action
                 elif BUTTON4_RECT.collidepoint(mouse_pos):  # Run Button
-                    if event.button == 1:
-                        if player_turn and not ability_menu_open:
-                            player.start_turn()
-                            if random.random() < 0.4:
-                                message_text=("Player successfully ran away!")  # Log run success
-                                add_combat_message(message_text)
-                                current_enemy = None
-                                roomlvl = 0 
-                                CURRENT_STATE = TOWN  
-                            else:
-                                message_text=("Run failed! Monster attacks.")
-                                add_combat_message(message_text)
-                                player_turn = False
-                                player.end_turn()
-                                if current_enemy.is_alive():
-                                    player_alive = handle_monster_turn(player, current_enemy)
-                                    if not player_alive:
-                                        CURRENT_STATE = GAME_OVER
-                                    player_turn = True
+                    if player_turn and not ability_menu_open:
+                        handle_player_turn(player, current_enemy, "run") # <--- CALL handle_player_turn with "run" action
                 # --- Ability Menu Click Handling (if menu is open) ---
                 if ability_menu_open:
-                    player.start_turn()  # <---- CALL PLAYER.START_TURN() AT THE BEGINNING OF PLAYER TURN!
-                    # --- Exit Button Click ---
+                    # --- Exit Button Click (No Action Needed for Player Turn here, just close menu) ---
                     menu_width = 400
                     menu_height = 300
                     menu_x = (SCREEN_WIDTH - menu_width) // 2
@@ -2605,8 +2715,8 @@ def handle_combat_events(events):
                     exit_button_x = menu_x + menu_width - exit_button_width - 10
                     exit_button_rect = pygame.Rect(exit_button_x, menu_y + 10, exit_button_width, 25)
                     if exit_button_rect.collidepoint(mouse_pos):
-                        ability_menu_open = False
-                    else:  
+                        ability_menu_open = False # Close ability menu
+                    else: # Ability Button Clicks in Menu (Action Taken Here - Use Ability)
                         ability_button_y_start = menu_y + 50
                         ability_button_spacing = 70
                         ability_button_width = menu_width - 40
@@ -2618,15 +2728,9 @@ def handle_combat_events(events):
                                 ability_button_rect = pygame.Rect(menu_x + 20, ability_button_y_start + i * ability_button_spacing, ability_button_width, ability_button_height)
                                 if ability_button_rect.collidepoint(mouse_pos):
                                     ability = abilities[i]
-                                    use_ability(ability, player, current_enemy)  
-                                    ability_menu_open = False
-                                    player.end_turn()
-                                    if current_enemy.is_alive():
-                                        player_alive = handle_monster_turn(player, current_enemy)
-                                        if not player_alive:
-                                            CURRENT_STATE = GAME_OVER
-                                        player_turn = True 
-        if current_enemy and not current_enemy.is_alive(): 
+                                    player.use_ability(ability, current_enemy) # Use chosen ability
+                                    handle_player_turn(player, current_enemy, "ability_menu_click") # <--- CALL handle_player_turn with "ability_menu_click" action
+        if current_enemy and not current_enemy.is_alive():
             player.gain_experience(current_enemy.get_experience())
             player.gain_coins(current_enemy.gold)
             message_text=(f"You gained {current_enemy.get_experience()} XP and {current_enemy.gold} coins.") 

@@ -465,7 +465,7 @@ class Player:
             ability_type = ability["type"]
             if ability_type == "attack" or ability_type == "magic_attack": # Handle both attack types similarly for now
                 damage_multiplier = ability.get("damage_multiplier", 1.0) # Default multiplier to 1.0 if not specified
-                damage = int(self.get_attack_damage() * damage_multiplier)
+                damage = int(self.calculate_damage() * damage_multiplier)
                 if ability_type == "magic_attack":
                     damage = int(damage * 3) # Example: Magic attacks do 20% more base damage for now - balance later
                 damage_dealt = target.take_damage(damage)

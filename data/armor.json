@@ -1,0 +1,8 @@
+{
+    "Plate Armor": {
+        "name": "Plate Armor",
+        "type": "armor",
+        "defense": 5,
+         "Strength": 3
+    }
+}

@@ -1,0 +1,12 @@
+{
+    "forest": {
+      "easy": ["forest/easy/floor1.tmx"],
+      "medium": [],
+      "hard": []
+    },
+    "ice": {
+      "easy": [],
+      "medium": [],
+      "hard": []
+    }
+  }

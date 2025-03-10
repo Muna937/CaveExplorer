@@ -1,0 +1,54 @@
+{
+    "Attack": {
+        "type": "attack",
+        "power_multiplier": 1.0,
+        "mana_cost": 0,
+        "description": "A basic attack."
+    },
+    "Power Attack": {
+        "type": "attack",
+        "power_multiplier": 1.5,
+        "mana_cost": 5,
+        "description": "A strong attack."
+    },
+    "Defensive Stance": {
+        "type": "buff",
+        "stat": "defense",
+        "amount": 5,
+        "duration": 3,
+        "mana_cost": 5,
+        "description": "Increases defense."
+    },
+    "Sneak Attack": {
+        "type": "attack",
+        "power_multiplier": 2.0,
+        "mana_cost": 8,
+        "description": "A precise attack."
+    },
+    "Evade": {
+        "type": "buff",
+        "stat": "evasion",
+        "amount": 10,
+        "duration": 2,
+        "mana_cost": 7,
+        "description": "Increases evasion."
+    },
+    "Fireball": {
+        "type": "attack",
+        "power_multiplier": 1.8,
+        "mana_cost": 12,
+        "description": "A fiery blast."
+    },
+    "Heal": {
+        "type": "heal",
+        "heal_amount": 25,
+        "mana_cost": 10,
+        "description": "Restores health."
+    },
+     "Scratch": {
+        "type": "attack",
+        "power_multiplier": 1.1,
+        "mana_cost": 0,
+        "description": "A weak scratch."
+    }
+}

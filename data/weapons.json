@@ -1,0 +1,8 @@
+{
+    "Sword": {
+        "name": "Sword",
+        "type": "weapon",
+        "attack": 5,
+        "Strength" : 2
+    }
+}

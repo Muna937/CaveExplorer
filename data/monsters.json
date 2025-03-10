@@ -1,0 +1,38 @@
+{
+    "Goblin": {
+        "name": "Goblin",
+        "Strength": 2,
+        "Agility": 3,
+        "Intelligence": 1,
+        "Wisdom": 1,
+        "Dexterity": 3,
+        "Luck": 1,
+        "Charisma": 1,
+        "max_hp": 25,
+        "max_mana": 10,
+        "xp_reward": 10,
+        "gold_reward": 5,
+        "abilities": ["Attack", "Scratch"],
+        "drops": [["Gold", 100], ["Health Potion", 50]],
+        "level": 1,
+        "inventory": {}
+    },
+    "Big Goblin": {
+        "name": "Big Goblin",
+        "Strength": 4,
+        "Agility": 5,
+        "Intelligence": 1,
+        "Wisdom": 1,
+        "Dexterity": 5,
+        "Luck": 1,
+        "Charisma": 1,
+        "max_hp": 40,
+        "max_mana": 10,
+        "level": 2,
+        "xp_reward": 20,
+        "gold_reward": 10,
+        "abilities": ["Attack", "Scratch"],
+        "drops": [["Gold", 100], ["Health Potion", 50]],
+        "inventory": {}
+    }
+}

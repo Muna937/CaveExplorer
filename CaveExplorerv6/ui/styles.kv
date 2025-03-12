@@ -1,0 +1,25 @@
+#:kivy 1.11.1  <- May need to change this to the installed version.
+# ui/styles.kv
+
+<Label>:  # Apply to all Label widgets
+    font_size: '16sp'  # Default font size for labels
+    color: 1, 1, 1, 1   # White text color
+
+<Button>:  # Default Button styling
+    background_normal: ''  # Remove default button image
+    background_color: 0.4, 0.4, 0.4, 1  # Dark grey background
+    color: 1, 1, 1, 1  # White text
+    font_size: '14sp'
+
+<CustomButton>:  # Styling for our custom button (inherits from Button)
+    # You can override styles here, or they will be inherited from <Button>
+    # Examples (commented out):
+    # background_color: 0.2, 0.6, 0.9, 1  # Override background color (if not set in Python)
+    # font_size: '18sp'                  # Override font size
+
+<TextInput>:
+    background_color: 0.9, 0.9, 0.9, 1
+    foreground_color: 0,0,0,1
+    font_size: '14sp'
+
+# Add more style rules as needed for other widgets

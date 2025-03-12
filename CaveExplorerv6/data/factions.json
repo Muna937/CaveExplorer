@@ -1,0 +1,69 @@
+{
+    "factions": {
+      "town_guard": {
+        "name": "Town Guard",
+        "description": "The protectors of the town.",
+        "disposition": {
+          "player": 0,
+          "goblins": -100,
+          "orcs": -100,
+          "merchants_guild": 50,
+          "mages_guild": 20
+        },
+        "allies": ["merchants_guild"],
+        "enemies": ["goblins", "orcs"]
+      },
+      "goblins": {
+        "name": "Goblins",
+        "description": "A tribe of mischievous and aggressive goblins.",
+        "disposition": {
+          "player": -50,
+          "town_guard": -100,
+          "orcs": -20,
+          "merchants_guild": -30,
+          "mages_guild": -10
+        },
+        "allies": [],
+        "enemies": ["town_guard", "merchants_guild"]
+      },
+      "orcs": {
+        "name": "Orcs",
+        "description": "A warband of strong and brutal orcs.",
+        "disposition": {
+          "player": -80,
+          "town_guard": -100,
+          "goblins": -20,
+          "merchants_guild": -50,
+          "mages_guild": 0
+        },
+        "allies": [],
+        "enemies": ["town_guard", "merchants_guild"]
+      },
+      "merchants_guild": {
+        "name": "Merchants' Guild",
+        "description": "A powerful guild of traders and merchants.",
+        "disposition": {
+          "player": 0,
+          "town_guard": 50,
+          "goblins": -30,
+          "orcs": -50,
+          "mages_guild": 30
+        },
+        "allies": ["town_guard"],
+        "enemies": ["goblins", "orcs"]
+      },
+       "mages_guild":{
+        "name": "Mages' Guild",
+        "description": "A guild of powerful mages.",
+        "disposition":{
+          "player": 0,
+          "town_guard": 20,
+          "goblins": -10,
+          "orcs": 0,
+          "merchants_guild": 30
+        },
+        "allies":[],
+        "enemies":[]
+      }
+    }
+  }

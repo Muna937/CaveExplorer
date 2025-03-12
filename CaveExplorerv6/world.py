@@ -2,95 +2,223 @@
 
 # Goals:
 #   - Load and manage the game world (map data).
-#   - Render the map (tiles, objects, etc.).
-#   - Handle collision detection (if applicable).
+#   - Create and manage Tile objects based on map data.
+#   - Create and manage NPC, Monster, and Item instances on the map.
+#   - Handle collision detection (using Tile.walkable).
 #   - Manage map transitions (loading different maps).
-#   - (Optionally) Manage dynamic map elements (e.g., moving platforms, opening doors).
+#   - (Optionally) Manage dynamic map elements.
 
 # Interactions:
 #   - game.py:
 #       - Game.update() calls World.update().
-#       - Game gets information about the map (e.g., tile data) from World.
+#       - Game gets information about the map (tiles, NPCs, monsters, items) from World.
 #   - data/maps/: Loads map data from JSON files.
-#   - entity.py (potentially): For collision detection with entities.
-#   - player.py (potentially): For collision detection with the player.
-#   - ui/screens/game_screen.py: Renders the map to the screen (likely using data provided by World).
-#   - utils.py: May use utility functions (e.g., for loading JSON data).
+#   - tile.py: Creates Tile instances.
+#   - npc.py: Creates NPC instances.
+#   - monster.py: Creates Monster instances.
+#   - item.py: Creates Item instances.
+#   - ui/screens/game_screen.py: Renders the map, NPCs, monsters, and items (using data provided by World).
+#   - utils.py: Uses utility functions (e.g., for loading JSON data).
+#   - player.py: Used for collision detection.
+#   - save_load.py:  Will need to handle saving/loading the *state* of NPCs, monsters, and items on the map (their positions, HP, etc.).  This is more complex than just saving the initial placement.
 
-# Example Structure (using a simple tile-based map):
+from tile import Tile
+from npc import NPC
+from monster import Monster
+from item import Item, Consumable, Weapon, Armor  # Import Item classes
+from utils import load_json_data
+import os
 
 class World:
     def __init__(self):
-        self.map_data = None  # Store the current map data.
+        self.map_data = None
         self.current_map_name = "town"  # Example: Start in the "town" map.
-        self.tile_size = 32 #Example
+        self.tile_size = 32
+        self.tiles = []  # Store Tile objects
+        self.npcs = {}  # Store NPC instances {npc_id: NPC object}
+        self.monsters = []  # Store Monster instances
+        self.items = [] # Store Item instances
         self.load_map(self.current_map_name)
 
     def load_map(self, map_name):
-        # Load map data from a JSON file (using a helper function, e.g., from utils.py).
-        map_filepath = f"data/maps/{map_name}.json"
-        self.map_data, error_message = load_json_data(map_filepath) # Assuming load_json_data is in utils.py
+        map_filepath = os.path.join("data", "maps", f"{map_name}.json")
+        self.map_data, error_message = load_json_data(map_filepath)
         if error_message:
-          print(error_message) #Or handle however is appropriate
-          return False, error_message
+            print(error_message)
+            return False, error_message
 
-        #  process the map data (e.g., create Tile objects).
-        #  This is a placeholder; you'll need to adapt it to your map data format.
-        # self.tiles = []
-        # for row in self.map_data["tiles"]:
-        #     tile_row = []
-        #     for tile_id in row:
-        #         tile = Tile(tile_id)  # Create a Tile object (you'd define a Tile class).
-        #         tile_row.append(tile)
-        #     self.tiles.append(tile_row)
+        # --- Tile Creation ---
+        self.tiles = []  # Clear previous tiles
+        for row_index, row in enumerate(self.map_data["tiles"]):
+            tile_row = []
+            for col_index, tile_id in enumerate(row):
+                # Replace this with your actual tile mapping logic
+                if tile_id == 0:
+                    tile = Tile(tile_id, walkable=False, image_path="assets/images/tiles/wall.png")  # Example
+                elif tile_id == 1:
+                    tile = Tile(tile_id, walkable=True, image_path="assets/images/tiles/floor.png")  # Example
+                # ... more tile types ...
+                else:
+                    tile = Tile(tile_id)  # default
+                tile_row.append(tile)
+            self.tiles.append(tile_row)
+
+        # --- NPC Creation ---
+        self.npcs = {} # Clear existing NPC instances
+        if "npcs" in self.map_data:
+          npc_data, msg = load_json_data("data/npcs.json") #load npc data
+          if npc_data:
+            npc_data = npc_data['npcs'] #get the inner dictionary
+            for npc_id, npc_pos in self.map_data["npcs"].items():
+                if npc_id in npc_data:
+                  npc_info = npc_data[npc_id]
+                  self.npcs[npc_id] = NPC(
+                      npc_id=npc_id,
+                      name=npc_info["name"],
+                      x=npc_pos["x"],
+                      y=npc_pos["y"],
+                      dialogue_id=npc_info["dialogue"],
+                      is_merchant=npc_info.get("is_merchant", False),  # Use .get()
+                      inventory=npc_info.get("inventory", [])  # Use .get()
+                  )
+                else:
+                  print(f"NPC ID {npc_id} not found in npcs.json") #Error Handle
+          else:
+            print(msg) #Error Handle
+
+
+        # --- Monster Creation ---
+        self.monsters = []  # Clear existing
+        if "monsters" in self.map_data:
+          monsters_data, msg = load_json_data("data/monsters.json")
+          if monsters_data:
+            monsters_data = monsters_data['monsters']
+            for monster_spawn in self.map_data["monsters"]:
+                monster_type = monster_spawn["type"]
+                if monster_type in monsters_data:
+                    monster_info = monsters_data[monster_type]
+                    self.monsters.append(Monster(
+                          monster_id = monster_type,
+                          name=monster_info["name"],
+                          x=monster_spawn["x"],
+                          y=monster_spawn["y"],
+                          hp=monster_info["hp"],
+                          max_hp = monster_info["max_hp"],
+                          attack=monster_info["attack"],
+                          defense=monster_info["defense"],
+                          speed = monster_info["speed"],
+                          experience = monster_info["experience"],
+                          gold_drop = monster_info["gold_drop"],
+                          drops=monster_info["drops"],
+                          sprite=monster_info["sprite"],
+                          ai = monster_info["ai"],
+                          resistances = monster_info.get("resistances",{}),
+                          weaknesses = monster_info.get("weaknesses",{})
+                    ))
+                else:
+                    print(f"Monster ID {monster_type} not found in monsters.json.")
+          else:
+            print(msg) #Error handle
+
+        # --- Item Creation ---
+        self.items = []  # Clear existing
+        if "items" in self.map_data:
+          items_data, msg = load_json_data("data/items.json")
+          if items_data:
+            items_data = items_data['items']
+            for item_spawn in self.map_data["items"]:
+                item_type = item_spawn["type"]
+                if item_type in items_data:
+                    item_info = items_data[item_type]
+                    if item_info["type"] == "consumable":
+                      item = Consumable(
+                        item_id = item_type,
+                        name = item_info["name"],
+                        item_type = item_info["type"],
+                        description = item_info["description"],
+                        value = item_info["value"],
+                        stackable = item_info["stackable"],
+                        max_stack = item_info["max_stack"],
+                        icon = item_info["icon"],
+                        effect = item_info["effect"],
+                        quantity = item_spawn["quantity"]
+                      )
+                    elif item_info["type"] == "weapon":
+                      item = Weapon(
+                        item_id = item_type,
+                        name = item_info["name"],
+                        item_type = item_info["type"],
+                        description = item_info["description"],
+                        value = item_info["value"],
+                        stackable = item_info["stackable"],
+                        max_stack = item_info["max_stack"],
+                        icon = item_info["icon"],
+                        weapon_type = item_info["weapon_type"],
+                        attack = item_info["attack"],
+                        durability = item_info["durability"],
+                        max_durability = item_info["max_durability"],
+                        requirements = item_info["requirements"],
+                        effects = item_info["effects"],
+                        quantity = item_spawn["quantity"]
+                      )
+                    elif item_info["type"] == "armor":
+                      item = Armor(
+                        item_id = item_type,
+                        name = item_info["name"],
+                        item_type = item_info["type"],
+                        description = item_info["description"],
+                        value = item_info["value"],
+                        stackable = item_info["stackable"],
+                        max_stack = item_info["max_stack"],
+                        icon = item_info["icon"],
+                        armor_type = item_info["armor_type"],
+                        defense = item_info["defense"],
+                        durability = item_info["durability"],
+                        max_durability = item_info["max_durability"],
+                        requirements = item_info["requirements"],
+                        effects = item_info["effects"],
+                        quantity = item_spawn["quantity"]
+                      )
+                    else: # Fallback to generic item
+                      item = Item(
+                        item_id = item_type,
+                        name = item_info["name"],
+                        item_type = item_info["type"],
+                        description = item_info["description"],
+                        value = item_info["value"],
+                        stackable = item_info["stackable"],
+                        max_stack = item_info["max_stack"],
+                        icon = item_info["icon"],
+                        quantity = item_spawn["quantity"]
+                      )
+                    item.x = item_spawn["x"]
+                    item.y = item_spawn["y"]
+                    self.items.append(item)
+                else:
+                  print(f"Item type not found in items.json {item_type}") #error handle
+          else:
+            print(msg) #error handle
         return True, ""
 
-
     def update(self, dt):
-        # Update the world state (e.g., animations, moving objects).
-        pass
+        for npc in self.npcs.values():  # Iterate through NPC *instances*
+            npc.update(dt)
+        for monster in self.monsters:
+            monster.update(dt)
+        # Items usually don't need updating, unless they have some active effect
 
     def is_tile_walkable(self, x, y):
-        # Check if a tile at the given coordinates is walkable (for collision detection).
-        #  This is a placeholder; you'll need to implement your collision logic.
-        if not self.map_data: # Map hasn't loaded
-          return False
         tile_x = int(x // self.tile_size)
         tile_y = int(y // self.tile_size)
-        #check the bounds
-        if 0 <= tile_y < len(self.map_data["tiles"]) and 0 <= tile_x < len(self.map_data["tiles"][0]):
-            return self.map_data["tiles"][tile_y][tile_x] != 0  # Example: 0 represents a non-walkable tile.
+        if 0 <= tile_y < len(self.tiles) and 0 <= tile_x < len(self.tiles[0]):
+            return self.tiles[tile_y][tile_x].walkable
         else:
-          return False # Out of bounds is not walkable
-
-    def render(self, screen): #You would likely use a surface or the screen.
-        # Render the map to the screen.
-        # This is a placeholder; you'll need to implement your rendering logic using Kivy.
-
-        # Example (very basic):
-        # for row_index, row in enumerate(self.tiles):
-        #     for col_index, tile in enumerate(row):
-        #         # Draw the tile at (col_index * tile_size, row_index * tile_size)
-        #         # You'd use Kivy's Canvas instructions here.
-        #          pass
-        pass
-
+            return False
     def change_map(self, map_name):
       success, message = self.load_map(map_name)
       if success:
         self.current_map_name = map_name
       return success, message
 
-# Example Usage (in game.py):
-# world = World()
-# world.load_map("town")
-#
-# # ... later, in the game loop ...
-# world.update(dt)
-#
-# # ... for collision detection ...
-# if world.is_tile_walkable(player.x + dx, player.y + dy):
-#     player.move(dx, dy)
-#
-# # ... for rendering ...
-# world.render(screen)  # You'd pass in the Kivy Canvas or a relevant drawing surface.
+    def render(self, screen): #Placeholder
+      pass

@@ -8,6 +8,8 @@
 #   - Manage game time (if applicable).
 #   - Interact with other game systems (combat, inventory, quests, etc.).
 #   - Coordinate saving and loading of the game.
+#   - **Centralize input handling.**
+#   - **Manage player interactions with NPCs, monsters and items**
 
 # Interactions:
 #   - app.py: The App class creates the Game instance.
@@ -17,61 +19,121 @@
 #   - inventory.py: Accesses and modifies the player's inventory.
 #   - quests.py: Updates quest progress.
 #   - ui/screens/game_screen.py: Provides input to the game and receives data to display.
+#   - ui/screens/dialogue_screen.py: Starts dialogue with NPCs.
 #   - save_load.py: Saves and loads the game state.
 #   - entity.py (potentially): If you have other entities besides the player, Game manages them.
 #   - utils.py: May use utility functions (e.g., for loading data, pathfinding).
+#   - npc.py: Interacts with NPCs.
+#   - monster.py: Interacts with monsters.
+#   - item.py: Handles item interactions (pickup).
+#   - kivy.core.window:  Gets keyboard input.
 
-# Example Structure:
+
+from player import Player
+from world import World
+from kivy.core.window import Window
+
 class Game:
     def __init__(self):
-        self.player = Player(name="Hero", x=10, y=10)  # Initialize the player.
-        self.world = World()  # Initialize the world.
-        self.is_running = True # Control the game loop.
-        # ... other game state variables (e.g., current_map, game_time) ...
+        self.player = Player(name="Hero", x=5, y=5, character_class="warrior")  # Initial position
+        self.world = World()
+        self.is_running = True
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        self.current_npc = None # Track the NPC we are interacting with.
 
     def update(self, dt):
-        # Main game loop logic.
         if not self.is_running:
-          return
+            return
 
-        # 1. Handle Input (from the UI, eventually)
-        #    Example (replace with actual input handling):
-        #    player_input = get_input()
-        #    if player_input == "move_up":
-        #        self.player.move(0, -1)
-        # ...
+        # Input is handled separately now.
+        self.player.update(dt)  # Update player (for things like animation)
+        self.world.update(dt)   # Update world (NPCs, monsters)
 
-        # 2. Update Player
-        self.player.update(dt)
+        # --- NPC Interaction (Example) ---
+        for npc_id, npc in self.world.npcs.items():
+            if self.player.x == npc.x and self.player.y == npc.y:
+                # Trigger interaction (e.g., start dialogue)
+                self.current_npc = npc
+                break  # Stop checking after the first interaction
+            else:
+                self.current_npc = None
 
 
-        # 3. Update World
-        self.world.update(dt)
+        #--- Monster interaction (Example) ---
+        for monster in self.world.monsters:
+          if self.player.x == monster.x and self.player.y == monster.y:
+            #Start Combat
+            pass
+        # --- Item Interaction (Example) ---
+        items_to_remove = []
+        for item in self.world.items:
+          if self.player.x == item.x and self.player.y == item.y:
+            #add to inventory
+            if self.player.add_to_inventory(item):
+              items_to_remove.append(item) #remove after loop
+        for item in items_to_remove:
+          self.world.items.remove(item)
+    def _keyboard_closed(self):
+        # Cleanup when the keyboard is closed.
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
 
-        # 4. Check for Combat (example)
-        #    if check_for_combat(self.player, self.world):
-        #        self.start_combat()
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        # Handle keyboard input.  keycode is a tuple: (key_code, key_name)
+        dx = 0
+        dy = 0
+        if keycode[1] == 'w':
+            dy = -1
+        elif keycode[1] == 's':
+            dy = 1
+        elif keycode[1] == 'a':
+            dx = -1
+        elif keycode[1] == 'd':
+            dx = 1
+        elif keycode[1] == 'q': #Quit
+            self.quit_game()
+        #Added e for interaction
+        elif keycode[1] == 'e':
+            self.handle_interaction()  # Check for interaction
 
-        # 5. Update other systems (quests, inventory, etc.)
-        # ...
+        self.check_move(dx, dy) # Moved to game.py
+        return True # Suppress other
+
+    def handle_interaction(self):
+      if self.current_npc:
+        self.current_npc.interact(self.player, self) #call npc interact
+
+    def check_move(self, dx, dy):
+        if self.player:
+            new_x = self.player.x + dx
+            new_y = self.player.y + dy
+            # The map size check is now within is_tile_walkable().
+            if self.world.is_tile_walkable(new_x * self.world.tile_size, new_y * self.world.tile_size):
+                self.player.move(dx, dy)
+
+
+    def start_dialogue(self, npc_id):
+        # Start dialogue with the specified NPC.
+        # IMPORTANT:  Get the *current* ScreenManager from the running App.
+        app = App.get_running_app()
+        if app and app.root:  # Check that the app and root are available
+            app.root.get_screen('dialogue').start_dialogue(npc_id)
 
     def start_combat(self):
-      #Example of how to start combat
-      pass
         # combat_instance = Combat([self.player] + enemies_nearby)
         # combat_instance.start_combat()
         # while not combat_instance.is_combat_over():
-        #   combat_instance.update(dt) # You might need a separate dt or a way to pause the main loop
+        #   combat_instance.update(dt) # You might need a separate dt
         # results = combat_instance.get_results()
         # ... handle combat results ...
+        pass
 
     def load_game(self):
-        # Load game data from save file (using save_load.py).
         pass
 
     def save_game(self):
-        # Save game data to save file (using save_load.py).
         pass
+
     def quit_game(self):
-        #would set the game state and any clean up.
         self.is_running = False

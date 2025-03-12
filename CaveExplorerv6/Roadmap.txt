@@ -1,0 +1,113 @@
+Okay, here's a prioritized list of the files that need to be fleshed out next, along with their general objectives. This list focuses on getting a minimal, playable game loop working, building upon the code we've already created. I'm prioritizing the *core* game mechanics and assuming we're still working on the *single-player* version.
+
+**Priority 1: Core Gameplay Loop (Get something moving and interactive)**
+
+1.  **`game.py` (Highest Priority):**
+    *   **Objectives:**
+        *   Implement the main game loop's `update()` method fully.  This includes:
+            *   Handling player input (integrating with `game_screen.py` for key presses).  Right now, `game_screen.py` *calls* `player.move()`, but `player.move()` is just a placeholder.
+            *   Updating the player's position (calling `player.update()`).
+            *   Updating the world (calling `world.update()`). This will become more important later.
+            *   Checking for basic game over conditions (e.g., player health reaches 0).
+            *   (Eventually) handling saving/loading.
+        *   Coordinate the interactions between the player, the world, and other game systems.
+
+2.  **`player.py`:**
+    *   **Objectives:**
+        *   Implement the `move()` method. This should take `dx` and `dy` arguments (change in x and y) and update the player's `x` and `y` coordinates. *Do not handle collision detection here.*
+        *   Implement the beginnings of an `update()` method. For now, this can be very simple.
+        *   Ensure all necessary player attributes (stats, inventory, etc.) are initialized correctly. We've already done a good job with class selection; this part just needs the `move` method to be functional.
+
+3.  **`world.py`:**
+    *   **Objectives:**
+        *   Implement `load_map()` fully. This involves:
+            *   Loading a map JSON file (e.g., `data/maps/town.json`). You *already have* the code to load the JSON using `load_json_data()`.
+            *   *Interpreting* the `tiles` array in the JSON data.  This is where you create your internal representation of the map.  A simple way to do this is to just store the 2D array of tile IDs.  A more advanced way would be to create `Tile` objects (you might create a `tile.py` file for this later, but for now, just storing the IDs is fine).
+        *   Implement `is_tile_walkable()`.  This is *crucial* for collision detection. It should take `x` and `y` coordinates (in *game world coordinates*, not tile coordinates), convert them to tile coordinates, and check if the tile at that location is walkable (based on your map data).
+        *   Implement a basic `update()` method (it might be empty for now).
+        *   *(Temporarily)* Implement a *very basic* `render()` method that does *something* visual.  This could even just print the tile IDs to the console.  The *real* rendering will happen in `game_screen.py`, but this helps with debugging.
+
+4.  **`data/maps/town.json` (or another map file):**
+    *   **Objectives:**
+        *   Create a simple map file.  This should include, at minimum:
+            *   `"name"`: A name for the map (e.g., "Town").
+            *   `"width"`: The width of the map in tiles.
+            *   `"height"`: The height of the map in tiles.
+            *   `"tile_size"`: The size of each tile (e.g., 32).
+            *   `"tiles"`: A 2D array representing the map. Use `0` for non-walkable tiles (e.g., walls) and `1` for walkable tiles (e.g., floor).  Keep it small for now (e.g., 10x10).
+        *   Example:
+
+            ```json
+            {
+              "name": "Small Town",
+              "width": 10,
+              "height": 10,
+              "tile_size": 32,
+              "tiles": [
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+              ]
+            }
+            ```
+
+5. **`ui/screens/game_screen.py`:**
+   * **Objectives**:
+        *   Replace the placeholder label with *basic map rendering*. This is the most visually complex part, but we can start simple.
+        *   Use Kivy's `Canvas` instructions to draw rectangles for each tile.  You'll iterate through the `tiles` array in your `world.map_data` and draw a rectangle for each tile. Use different colors for walkable and non-walkable tiles.
+        *   Draw a rectangle to represent the player. Update its position based on `game.player.x` and `game.player.y`.
+        *   Ensure the player's movement is constrained by the `is_tile_walkable()` method in `world.py`.
+
+**Priority 2: Basic Functionality (Expand on the core loop)**
+
+1.  **`combat.py`:**
+    *   **Objectives:**
+        *   Implement a basic combat system. Start *very* simple (e.g., automatic attacks, no skills).
+        *   Create a `Combat` class to manage combat encounters.
+        *   Implement turn-based combat logic.
+        *   Calculate damage (initially a simple calculation based on attack and defense).
+        *   Handle entity death.
+
+2.  **`entity.py`:**
+    *   **Objectives:**
+        *   Add any missing common attributes or methods needed by both the `Player` and (eventually) monsters.
+        *   Consider adding basic combat-related methods (e.g., `attack(target)`).
+
+3.  **`monsters.json`:**
+    *   **Objectives:**
+        *   Create a simple monster definition (e.g., a "Goblin").
+        *   Include basic stats (HP, attack, defense).
+
+4. **`ui/screens/combat_screen.py` (Optional):**
+   * **Objectives:**
+        * If you separate combat into its own screen, begin implementing the display for the combat screen.
+        * Show health bars, and basic information.
+
+**Priority 3: Refinement and Additional Features**
+
+1.  **`inventory.py`:** Flesh out the inventory system (stacking, using items).
+2.  **`items.json`:** Add more items.
+3.  **`skills.py`:** Implement a basic skill system.
+4.  **`skills.json`:** Add skill data.
+5.  **`quests.py`:** Implement a basic quest system.
+6.  **`quests.json`:** Add quest data.
+7. **`save_load.py`:**
+8.  **`npcs.json` and `data/dialogue/`:** Implement basic NPC interaction and dialogue.
+9.  **Other UI Screens:** Flesh out the remaining UI screens (character, inventory, quest log, options, etc.).
+10. **`ui/widgets/`:** Create custom widgets (e.g., a better health bar).
+11. **`assets/`:** Add art and sound assets.
+
+**General Workflow:**
+
+*   **Focus on Vertical Slices:** Instead of trying to implement everything in one file at once, work on *vertical slices* of functionality. For example, get basic player movement and map rendering working *together* before moving on to combat.
+*   **Iterate:** Start with simple implementations and gradually add complexity.
+*   **Test Frequently:** Run your game often and test each new feature as you add it.
+
+This prioritized list should give you a clear roadmap for developing your game. By focusing on the core gameplay loop first, you'll quickly have a working prototype that you can then expand upon. Remember to keep things simple at first and add complexity gradually.

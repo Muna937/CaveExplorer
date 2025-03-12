@@ -1,0 +1,24 @@
+{
+    "recipes": {
+      "potion_recipe": {
+        "ingredients": {
+          "healing_herb": 2,
+          "empty_vial": 1
+        },
+        "result": {
+          "item_id": "potion",
+          "quantity": 1
+        }
+      },
+       "super_potion_recipe":{
+        "ingredients":{
+          "potion": 2,
+          "healing_herb": 2
+        },
+        "result":{
+          "item_id": "super_potion",
+          "quantity": 1
+        }
+      }
+    }
+  }

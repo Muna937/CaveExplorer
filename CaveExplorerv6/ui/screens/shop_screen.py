@@ -4,16 +4,18 @@
 #   - Allow the player to buy and sell items with an NPC merchant.
 #   - Display the merchant's inventory and the player's inventory.
 #   - Handle transactions (deducting gold, adding/removing items).
+#   - Access the Game instance through the ScreenManager to get necessary data.
 
 # Interactions:
 #   - app.py: Added to ScreenManager.
-#   - game.py:  Gets the merchant's inventory and the player's inventory/gold.
+#   - game.py:  Gets the merchant's inventory and the player's inventory/gold via App.game_instance.
 #   - npcs.json:  Gets the merchant's inventory data (which items they sell).
 #   - items.json:  Gets item data (name, description, value).
 #   - inventory.py:  Adds and removes items from inventories.
 #   - player.py: Accesses and modifies the player's gold.
 #   - ui/widgets/: Might use custom widgets.
 #   - kivy: Uses kivy for UI
+#   - utils.py: Uses load_json_data
 
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
@@ -22,6 +24,7 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.app import App  # Import App
 from utils import load_json_data
 
 class ShopScreen(Screen):
@@ -68,10 +71,12 @@ class ShopScreen(Screen):
         Clock.schedule_interval(self.update, 1.0 / 60.0)
         self.merchant = None
         self.items_data = {}
+        self.game = None # Initialize self.game
 
 
     def on_enter(self):
-        self.game = self.manager.parent.game_instance
+        # Get the Game instance from the App
+        self.game = App.get_running_app().game_instance # Correct way
         # Get the interacting NPC (you'll need a mechanism for this in game.py)
         # Example: self.merchant = self.game.interacting_npc
         #For showcase purposes using the blacksmith
@@ -96,7 +101,7 @@ class ShopScreen(Screen):
         self.merchant_inventory.clear_widgets()
         self.player_inventory.clear_widgets()
 
-        if self.merchant and self.items_data:
+        if self.merchant and self.items_data and self.game and self.game.world: #check for game and world
             # Display merchant's inventory
             npc_data = self.game.world.map_data['npcs'].get(self.merchant) #get npc from world
             if not npc_data:

@@ -1,114 +1,131 @@
 # quests.py
 
 # Goals:
-#   - Define a Quest class to represent individual quests.
-#   - Store quest information (name, description, objectives, rewards).
-#   - Track quest progress (e.g., number of enemies killed, items collected).
-#   - Check if quest objectives are complete.
-#   - Provide methods for accepting, completing, and (optionally) abandoning quests.
-#   - Manage a list of the player's active and completed quests.
+#   - Define Quest and Objective classes to represent quests and their objectives.
+#   - Load quest data from a JSON file (quests.json).
+#   - Track quest progress (active, completed, objective status).
+#   - Check for quest and objective completion.
+#   - Handle quest rewards (giving items, gold, experience to the player).
+#   - Provide methods to start and complete quests.
 
 # Interactions:
 #   - game.py:
-#       - Game might add quests to the player's quest log.
-#       - Game checks for quest completion during updates.
-#   - player.py (potentially, or through game.py):
-#       - Player object might store a list of active/completed quests.
-#   - ui/screens/quest_log_screen.py:
-#       - Displays the player's quests and their progress.
-#   - inventory.py (potentially):
-#       - Quests might require collecting specific items.
-#   - entity.py (potentially):
-#       - Quests might require defeating specific enemies.
-#   - data/quests.json (likely loaded via utils.py or game.py):
-#       - Quest data (descriptions, objectives, rewards) would likely be loaded from a JSON file.
-#   - save_load.py: Quest progress needs to be saved and loaded.
+#       - Loads quest data during initialization.
+#       - Calls update() on active quests in the game loop.
+#       - Calls start_quest() and complete_quest() based on game events (dialogue, etc.).
+#       - Accesses player.inventory and player attributes to check objectives and give rewards.
+#       - Maintains a dictionary of all quests, keyed by quest ID.
+#   - player.py:  (Indirectly, via game.py) Rewards are given to the player.
+#   - ui/screens/quest_log_screen.py:  Displays quest information (name, description, objectives, progress).
+#   - inventory.py: Used to check for collected items (for "collect" objectives).
+#   - data/quests.json:  Contains the quest definitions (loaded by load_quests()).
+#   - utils.py: Uses load_json_data to load the quest data.
+#   - dialogue_screen.py: Dialogue choices can trigger quest actions via game.handle_dialogue_action().
+#   - save_load.py:  Needs to save and load the status of all quests (active, completed, objective progress).
 
-# Example Structure:
-
+import json
+from utils import load_json_data #import load json data
 class Quest:
-    def __init__(self, name, description, objectives, rewards):
+    def __init__(self, quest_id, name, description, objectives, rewards):
+        self.quest_id = quest_id #Added ID
         self.name = name
         self.description = description
         self.objectives = objectives  # List of Objective objects (see below).
-        self.rewards = rewards  # Dictionary of rewards (e.g., {"gold": 100, "item": "Potion"}).
+        self.rewards = rewards  # Dictionary of rewards.
         self.is_complete = False
         self.is_active = False
 
     def check_completion(self):
-        # Check if all objectives are complete.
         for objective in self.objectives:
             if not objective.is_complete:
                 return False
         self.is_complete = True
         return True
 
-    def complete_quest(self):
-        # Mark the quest as complete and give rewards (likely handled by game.py).
-      if self.is_complete:
-        print(f"Quest '{self.name}' completed!")  # Replace with actual reward handling
-        # game.player.add_gold(self.rewards.get("gold", 0))
-        # ... other reward logic ...
+    def complete_quest(self, game): # Added game parameter
+        if self.is_complete:
+            print(f"Quest '{self.name}' completed!")
+            # Give rewards (now handles multiple items and experience)
+            game.player.add_gold(self.rewards.get("gold", 0))
+            game.player.experience += self.rewards.get("experience", 0)  # Add experience
+            for item_id, quantity in self.rewards.get("items", {}).items():  # Iterate through items
+                for _ in range(quantity): #add correct number of items.
+                  item_data = game.items_data.get(item_id)
+                  if item_data:
+                    game.player.inventory.add_item(item_data.copy())  # Add a *copy* of the item data
+                  else:
+                    print(f"Error: Item ID '{item_id}' not found in items_data.")
 
     def start_quest(self):
-      self.is_active = True
-      print(f'Quest: "{self.name}" started!')
+        self.is_active = True
+        print(f'Quest: "{self.name}" started!')
 
     def update(self, game):
-      #update quest objectives if the quest is active.
-      if self.is_active:
-        for objective in self.objectives:
-          objective.update(game)
-        self.check_completion()
+        if self.is_active:
+            for objective in self.objectives:
+                objective.update(game)
+            self.check_completion()
 
-class Objective:  # Separate class for objectives
+
+class Objective:
     def __init__(self, type, target, amount):
-        self.type = type  # e.g., "kill", "collect", "reach"
-        self.target = target  # e.g., "goblin", "potion", (x, y)
-        self.amount = amount  # e.g., 10 (goblins), 3 (potions)
+        self.type = type
+        self.target = target
+        self.amount = amount
         self.current_amount = 0
         self.is_complete = False
 
     def update(self, game):
-        # Update the objective's progress.
         if self.type == "kill":
-            # Example: Check how many enemies of type 'target' have been killed.
-            # This would likely involve interacting with the game.py or a separate
-            #  'kill_tracker' object.  For now, we use a placeholder.
-            # self.current_amount = game.get_kill_count(self.target) # Example
+            # Get kill count from Game instance (requires adding a method to Game)
+            self.current_amount = game.get_kill_count(self.target)
 
-          pass #placeholder
         elif self.type == "collect":
-            # Example: Check the player's inventory.
-            if game.player.inventory.has_item(self.target):
-                item = game.player.inventory.get_item(self.target)
-                #Need a way to get item count here. Assuming item has quantity
-                self.current_amount = item.get("quantity", 0)  # Placeholder for actual quantity.
+            # Count items in inventory directly
+            self.current_amount = game.player.inventory.count_item(self.target)
+
         elif self.type == "reach":
-          #Example: check if player is at location
-          if game.player.x == self.target[0] and game.player.y == self.target[1]:
-            self.current_amount = self.amount
+            if game.player.x == self.target[0] and game.player.y == self.target[1]:
+                self.current_amount = self.amount
 
         if self.current_amount >= self.amount:
             self.is_complete = True
 
-# Example Usage (in game.py or a quest manager class):
+def load_quests(filepath, items_data):
+    """Loads quest data from a JSON file."""
+    quests_data, error_msg = load_json_data(filepath)
+    if error_msg:
+        print(error_msg)  # Handle the error appropriately
+        return {}
 
-# Define objectives
-objective1 = Objective("kill", "goblin", 5)
-objective2 = Objective("collect", "potion", 3)
+    quests = {}
+    for quest_id, quest_data in quests_data.get("quests", {}).items():
+        objectives_data = quest_data.get("objectives", [])
+        objectives = []
+        for obj_data in objectives_data:
+            objective = Objective(
+                type=obj_data["type"],
+                target=obj_data["target"],
+                amount=obj_data["amount"],
+            )
+            objectives.append(objective)
 
-# Define a quest
-quest1 = Quest(
-    name="Goblin Hunt",
-    description="Eliminate 5 goblins and collect 3 potions.",
-    objectives=[objective1, objective2],
-    rewards={"gold": 50, "item": "Sword"}
-)
-#quest1.start_quest()  #would be activated on a trigger or through a function call.
+        rewards_data = quest_data.get("rewards", {})
+        # Ensure "items" is a dictionary where keys are item IDs and values are quantities.
+        rewards = {
+            "gold": rewards_data.get("gold", 0),
+            "experience": rewards_data.get("experience", 0),
+            "items": rewards_data.get("items", {})  # Ensure this is a dictionary
+        }
 
-# ... later, in the game loop ...
-# quest1.update()
-# if quest1.check_completion():
-#     quest1.complete_quest()
-#     # ... give rewards to player ...
+
+        quest = Quest(
+            quest_id = quest_id, #pass in ID
+            name=quest_data["name"],
+            description=quest_data["description"],
+            objectives=objectives,
+            rewards=rewards,
+        )
+        quests[quest_id] = quest
+
+    return quests

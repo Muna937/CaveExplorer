@@ -43,9 +43,9 @@ class World:
     def load_map(self, map_name):
         map_filepath = os.path.join("data", "maps", f"{map_name}.json")
         self.map_data, error_message = load_json_data(map_filepath)
-        if error_message:
+        if error_message:  # Check for error message
             print(error_message)
-            return False, error_message
+            return False, error_message # Return immediately if there's an error
 
         # --- Tile Creation ---
         self.tiles = []  # Clear previous tiles

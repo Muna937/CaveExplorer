@@ -1,9 +1,10 @@
 # ui/widgets/dialogue_box.py
 
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.label import Label
 from kivy.uix.button import Button
-from kivy.properties import StringProperty, ListProperty, ObjectProperty
+from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout  # Add this import!
+from kivy.properties import StringProperty, ObjectProperty, ListProperty
 from kivy.graphics import Color, Rectangle
 
 class DialogueBox(BoxLayout):

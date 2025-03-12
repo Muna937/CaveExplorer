@@ -1,0 +1,47 @@
+Fix Existing Errors: We are in the middle of doing that, going step by step.
+
+Basic Movement and Map Display (Highest Priority):
+
+data/maps/town.json (Complete): You need a valid town.json file. Make sure it conforms to the structure we defined, including width, height, tile_size, and a tiles array. Keep it small and simple for testing (e.g., 10x10). Include at least one walkable tile (ID 1) and some non-walkable tiles (ID 0).
+assets/images/tiles/ (Populate): You need at least two image files: wall.png and floor.png (or whatever you named them in world.py). These should be simple images (e.g., 32x32 pixel solid color squares) that correspond to your tile IDs. Place them in the correct assets/ subdirectory. Without these images, your map won't render correctly. You also need a player image.
+world.py (Verify): Double-check that load_map() correctly creates Tile objects and that is_tile_walkable() works as expected.
+game_screen.py (Verify): Ensure that the map is rendering correctly, and the player can move.
+player.py (Verify): Verify character initialization.
+Basic NPC Interaction:
+
+data/npcs.json (Populate): Add at least one NPC entry to npcs.json. Make sure to include the position (with the map, x, and y fields) and a dialogue ID.
+data/dialogue/ (Create): Create a simple dialogue file (e.g., data/dialogue/town_elder.json, or whatever ID you used in npcs.json). This file should follow the JSON structure we defined for dialogue. Start with a simple, non-branching conversation.
+world.py (Verify): Ensure NPCs are created, and that their locations on the map are as expected.
+game.py (Verify): Verify interaction triggering.
+ui/screens/dialogue_screen.py: (Verify): Make sure your dialogue shows and choices, if added, work.
+Basic Item Interaction:
+
+data/items.json (Populate): Add a simple item.
+world.py (Verify): Ensure the item shows on the map.
+game.py (Verify): Ensure items are able to be picked up
+Inventory Screen
+
+Add a consumable item and verify it can be used.
+At this point, you'll have a very basic but functional game loop: you can move around, interact with NPCs (triggering dialogue), and see a rendered map. This is your MVP.
+
+Next Steps (After MVP):
+
+Combat:
+combat.py: Implement the core combat logic (turns, attack calculations, etc.).
+monster.py: Flesh out monster stats and behavior (AI will come later).
+game.py: Integrate combat triggering (when the player moves onto a monster's tile, for example).
+ui/screens/combat_screen.py (Optional): Create a separate combat screen, or integrate combat display into game_screen.py.
+Inventory and Items:
+inventory_screen.py: Fully implement item use/equip/drop functionality.
+item.py: Add item use logic (effects of consumables, equipping weapons/armor).
+Skills
+Quests:
+quests.py: Implement quest tracking and objective checking.
+ui/screens/quest_log_screen.py: Display active quests and progress.
+Saving and Loading:
+save_load.py: Implement save_game() and load_game() to save and load the entire game state (player data, world state, inventory, quests, etc.).
+UI Refinements:
+Create/improve custom widgets (health bars, etc.).
+Improve the layout and appearance of all screens.
+Content Creation
+AI

@@ -1,0 +1,83 @@
+my_rpg_game/
+├── main.py             # Entry point. Initializes Kivy and runs the GameApp.
+├── app.py              # Kivy App class. Sets up ScreenManager and Game instance.
+├── game.py             # Core game logic, main loop, player movement, NPC interaction.
+├── player.py           # Player character class. Stores player data, handles movement.
+├── entity.py           # Base class for characters (Player, NPC, Monster).
+├── npc.py              # Non-Player Character class.
+├── monster.py          # Monster class.
+├── item.py             # Item class and subclasses (Consumable, Weapon, Armor).
+├── combat.py           # Combat system logic (turn-based).
+├── inventory.py        # Inventory management (adding, removing, checking items).
+├── skills.py           # Skill definitions and logic.
+├── quests.py           # Quest system logic and data structures.
+├── save_load.py       # Game saving and loading (using JSON).
+├── utils.py            # Utility functions (load/save JSON, distance calculation, etc.).
+├── tile.py             # Represents a single tile on the map.
+├── world.py            # Loads and manages the game map, including tiles, NPCs, monsters, and items.
+├── input_handler.py   # Centralized input handling (keyboard).
+├── constants.py         # Constants
+├── ai.py         # AI Logic
+├── events.py        #Game Event Handling
+
+├── ui/
+│   ├── screens/
+│   │   ├── __init__.py     # Makes screens a package.
+│   │   ├── main_menu.py    # Main menu screen.
+│   │   ├── game_screen.py    # Main game screen. Displays map, player, entities.
+│   │   ├── inventory_screen.py # Player inventory screen.
+│   │   ├── character_screen.py # Character stats screen.
+│   │   ├── quest_log_screen.py # Displays quests.
+│   │   ├── options_screen.py  # Options/settings screen.
+│   │   ├── save_load_screen.py # Save/load game screen.
+│   │   ├── bestiary_screen.py # Displays monster information.
+│   │   ├── combat_screen.py  # (Optional) Separate screen for combat encounters.
+│   │   ├── crafting_screen.py # Screen for crafting items.
+│   │   ├── dialogue_screen.py # Handles NPC dialogue.
+│   │   ├── help_screen.py     # Help/tutorial screen.
+│   │   ├── map_screen.py      # World map screen.
+│   │   ├── skill_tree_screen.py # Skill tree screen.
+│   │   ├── stats_screen.py     # Detailed stats screen.
+│   │   ├── shop_screen.py      # Screen for buying/selling items.
+│   │   └── game_over_screen.py # Game Over screen.
+│   ├── widgets/
+│   │   ├── __init__.py     # Makes widgets a package.
+│   │   ├── health_bar.py     # Custom health bar widget.
+│   │   ├── button.py        # Custom button widget.
+│   │   ├── label.py         # Custom label widget
+│   │   ├── inventory_slot.py # Custom inventory slot widget.
+│   │   └── dialogue_box.py  # Custom dialogue box widget.
+│   │   └── skill_button.py   # Custom skill button widget.
+│   └── styles.kv       # Kivy language file for styling.
+
+├── data/
+│   ├── maps/
+│   │   └── town.json       # Example map data (tile IDs, NPCs, monsters, items).
+│   ├── items.json          # Item data (stats, descriptions, etc.).
+│   ├── weapons.json         # Weapon data.
+│   ├── armor.json          # Armor data.
+│   ├── consumables.json   # (Optional) Could be merged with items.json.
+│   ├── skills.json         # Skill data.
+│   ├── talents.json        # (Not yet used, but defined in structure)
+│   ├── character_classes.json # Character class data.
+│   ├── monsters.json       # Monster data.
+│   ├── npcs.json           # NPC data.
+│   ├── quests.json         # Quest data.
+│   ├── dialogue/
+│   │   └── npc1.json    # Example dialogue file.
+│   ├── level_up_tables.json # Experience and level-up data.
+│   ├── config.json         # Game configuration settings.
+│    └── crafting_recipes.json # Crafting recipes
+├── assets/             # (Empty for now - you'll add images, sounds, fonts)
+│   ├── images/
+│   │    ├── tiles/      # Map tiles.
+│   │    ├── sprites/    # Character, monster, and NPC sprites.
+│   │    ├── ui/         # UI element images (buttons, icons, etc.).
+│   │    └── ...
+│   ├── sounds/
+│   │   ├── music/
+│   │   ├── effects/    # Sound effects (e.g., attack sounds, footsteps).
+│   │   └── ...
+│   ├── fonts/
+│   │    └── ...        # Custom fonts (if needed).
+└── requirements.txt  # Lists Python dependencies (kivy, PodSixNet).

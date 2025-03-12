@@ -1,5 +1,28 @@
-# ... (previous imports) ...
-from ui.widgets.dialogue_box import DialogueBox # Import the custom widget
+# ui/screens/dialogue_screen.py
+
+# Goals:
+#   - Display dialogue text from NPCs.
+#   - Handle branching dialogue (player choices).
+#   - Use the custom DialogueBox widget.
+#   - Load dialogue data from JSON files.
+#   - Manage the conversation flow.
+
+# Interactions:
+#   - app.py: Added to ScreenManager.
+#   - game.py:  Triggered when the player interacts with an NPC (game.start_dialogue).
+#   - npcs.json: Gets the NPC's dialogue ID.
+#   - data/dialogue/: Loads dialogue data from JSON files.
+#   - ui/widgets/dialogue_box.py: Uses the DialogueBox widget to display the UI.
+#   - kivy: Uses kivy for UI
+#   - utils.py:  Uses load_json_data to load dialogue files.
+
+from kivy.uix.screenmanager import Screen
+from kivy.uix.boxlayout import BoxLayout
+from kivy.clock import Clock
+from ui.widgets.dialogue_box import DialogueBox  # Import the custom widget
+import os
+from utils import load_json_data
+
 
 class DialogueScreen(Screen):
     def __init__(self, **kwargs):
@@ -60,8 +83,12 @@ class DialogueScreen(Screen):
         print("error node not found")
         self.end_dialogue()
         return
+      if self.npc_id not in self.game.world.npcs:
+        print(f'Error: NPC ID {self.npc_id} not found')
+        self.end_dialogue()
+        return
 
-      self.dialogue_box.npc_name = self.game.world.npcs[self.npc_id].name  # Set NPC name
+      self.dialogue_box.npc_name = self.game.world.npcs[self.npc_id].name  # Set NPC name. Now gets from npc object.
       self.dialogue_box.dialogue_text = node_data["text"]
 
       # Clear previous choices and add new ones

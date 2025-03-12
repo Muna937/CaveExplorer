@@ -1,21 +1,4 @@
 # ui/screens/inventory_screen.py
-
-# Goals:
-#   - Display the player's inventory to the user.
-#   - Allow the player to interact with items (use, equip, drop, etc.).
-#   - Provide a clear and user-friendly interface.
-
-# Interactions:
-#   - app.py: Added to the ScreenManager.
-#   - game.py: Gets the player's inventory data from the Game instance.
-#   - player.py: Accesses the player's inventory (via the Game instance).
-#   - ui/widgets/ (potentially):  Could use custom widgets to display inventory slots.
-#   - ui/screens/game_screen.py:  Typically, you'll switch back to the game screen
-#     after closing the inventory.
-#   - items.json (indirectly):  Gets item information (name, description, etc.)
-#     to display.
-#   - kivy: Uses kivy for UI.
-
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -23,6 +6,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
+from kivy.app import App  # Import the App class
+
 
 class InventoryScreen(Screen):
     def __init__(self, **kwargs):
@@ -58,11 +43,12 @@ class InventoryScreen(Screen):
         self.add_widget(self.layout)
         Clock.schedule_interval(self.update, 1.0 / 60.0)
         self.selected_item = None  # Store the currently selected item.
+        self.game = None #initizlize game
 
 
 
     def on_enter(self):
-      self.game = self.manager.parent.game_instance
+      self.game = App.get_running_app().game_instance  # Access via App
       self.refresh_inventory()
 
     def update(self, dt):

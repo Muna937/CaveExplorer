@@ -59,4 +59,41 @@ def clamp(value, min_value, max_value):
 # clamped_value = clamp(15, 0, 10)
 # print(f"Clamped value: {clamped_value}")
 
-# --- Add more utility functions as needed ---
+# --- Add more utility functions as needed --- # Best Practice
+import json
+import os
+
+def save_json_data(filepath, data):
+    """Saves JSON data to a file, handling potential errors."""
+    try:
+        # Ensure the filepath is relative to the project root or is absolute
+        if not os.path.isabs(filepath):
+            filepath = os.path.join(os.path.dirname(__file__),  filepath)
+
+        with open(filepath, 'w') as f:
+            json.dump(data, f, indent=4)  # Use indent for readability
+        return True, ""  # Return success and empty message
+    except Exception as e:
+        print(f"Error saving JSON data to {filepath}: {e}")
+        return False, str(e)  # Return failure and error message
+
+#Add load_json_data if you do not have it.
+def load_json_data(filepath):
+    """Loads JSON data from a file, handling potential errors."""
+    try:
+        # Ensure the filepath is relative to the project root or is absolute
+        if not os.path.isabs(filepath):
+            filepath = os.path.join(os.path.dirname(__file__), filepath)  # Go up one level to project root
+
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+        return data, "" #return data and a message
+    except FileNotFoundError:
+        print(f"Error: File not found: {filepath}")
+        return None, f"File not found: {filepath}"
+    except json.JSONDecodeError:
+        print(f"Error: Invalid JSON in file: {filepath}")
+        return None, f"Invalid JSON in file: {filepath}"
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return None, str(e)

@@ -1,0 +1,96 @@
+Essential Images (For core functionality):
+
+Tiles (in assets/images/tiles/):
+
+wall.png: Image for non-walkable tiles (e.g., a stone wall). (32x32 pixels)
+floor.png: Image for walkable tiles (e.g., a dirt floor). (32x32 pixels)
+Add more tile types as needed for your map design (e.g., water.png, grass.png, tree.png, etc.). Each should be 32x32.
+Player Character (in assets/images/ or assets/images/sprites/):
+
+player.png: A basic image for the player character. For now, a single static image is sufficient. (32x32 pixels is a good starting size, but it can be larger if your player sprite has more detail. It should be at least the tile size.)
+Later you will need animations.
+NPCs (in assets/images/npcs/):
+
+old_man.png: Image for the "Old Man" NPC (used in the example npcs.json). (32x32 pixels, or larger, consistent with player size).
+blacksmith.png: Image for the blacksmith.
+shopkeeper.png: image for shopkeeper
+guard.png: Image for guard
+Create images for any other NPCs you define in npcs.json. The filenames should match the "sprite" paths in your JSON data.
+Monsters (in assets/images/monsters/):
+
+goblin.png: Image for the "Goblin" monster. (32x32 pixels or larger)
+orc.png: Image for the "Orc" monster.
+skeleton.png: Image for the Skeleton
+fire_elemental.png: Image for fire elemental.
+Create images for any other monsters you define in monsters.json.
+Items (in assets/images/ or assets/images/items/ - consistent with your items.json):
+
+potion.png: Image for the "Healing Potion".
+
+super_potion.png: Image for "Super Potion".
+
+sword.png: Image for "Sword of Valor".
+
+armor.png: Image for "Leather Armor".
+
+mana_potion.png: image for mana potion.
+
+gold_coin.png: Image for "Gold Coin".
+
+scroll.png: Image for "Scroll of Wisdom".
+
+rusty_dagger.png: Image for "Rusty Dagger".
+
+herb.png: Image for "Healing Herb".
+
+orcish_axe.png: Image for orcish axe
+
+bone_club.png: Image for bone club.
+
+fire_essence.png: Image for fire essence.
+*fire_staff.png: Image for fire staff.
+*shortbow.png: Image for shortbow.
+*wand_of_sparks.png: Image for wand of sparks.
+*greatsword.png: Image for Greatsword
+
+Create images for all items defined in your items.json, weapons.json and armor.json files.  These can be smaller (e.g., 16x16 or 24x24 pixels) since they are often displayed in inventory slots.
+
+World Map
+
+world_map.png: Image for your world map. Resolution is up to you.
+Skills
+
+fireball.png: image for fireball
+ice_bolt.png: image for ice bolt
+heal.png: image for heal
+cleave.png: image for cleave
+sneak.png: image for sneak
+power_attack.png: image for power attack *whirlwind.png: image for whirlwind
+shield_bash.png: image for shield bash
+lightning_strike.png: image for lightning strike *teleport.png: Image for teleport. *backstab.png: Image for backstab. *evade.png: Image for evade
+lockpick.png: image for lockpick
+bless.png: image for bless
+smite.png: image for smite
+resurrect.png: image for resurrect
+Optional/Future Images (Not strictly needed for current functionality, but good to plan for):
+
+UI Elements (in assets/images/ui/):
+
+Custom button images (if you don't want to use solid colors).
+Inventory slot backgrounds.
+Health bar/mana bar images (if you don't want to use the canvas drawing in the HealthBar widget).
+Dialogue box background.
+Icons for skills and stats.
+Character Portraits:  If you want to display character portraits in dialogue or on the character screen.
+
+Animations:  Eventually, you'll want animated sprites for the player, monsters, and NPCs (walking, attacking, etc.). This will involve multiple images per animation.
+
+Additional Tiles: Other tiles for map variety.
+
+Important Notes:
+
+File Paths: Make absolutely sure that the file paths in your JSON data (items.json, monsters.json, npcs.json, etc.) exactly match the actual location and names of your image files. Case sensitivity matters!
+Consistency: Use a consistent art style and size for your images.
+Transparency: Use PNG images with transparency for sprites (player, monsters, NPCs, items) so they don't have solid backgrounds.
+Organization: Keep your assets well-organized within the assets/ directory. Use subfolders to categorize different types of images.
+By creating these images, you'll be able to visually represent all the core elements of your game, making it much more engaging and playable. This list covers everything needed to make the current code visually complete, based on what we've implemented so far.

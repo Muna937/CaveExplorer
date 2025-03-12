@@ -9,10 +9,6 @@ def resource_path(relative_path):
     except Exception:
         base_path = os.path.abspath(".")
     return os.path.join(base_path, relative_path)
-#To do list
-#Currently in combat log if the hostile rolls less then your defense it comes up as a miss not a block there is no detection whether the monster missed you or you just blocked it
-# Accuracy stat needs to be shown for the player and monster
-# text outlining needs to be done  throughout the project
 # --- Initialization ---
 pygame.init()
 pygame.font.init()
@@ -172,6 +168,34 @@ REST_OPTION_BUTTON_RECTS = {
     "Private Room": pygame.Rect(SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 70, 300, 40),
 }
 TAVERN_REST_EXIT_BUTTON_RECT = None 
+
+# --- Quest Data and Functions ---
+
+QUEST_TYPES = ["Exploration", "Extermination"]
+QUEST_TYPE_DESCRIPTIONS = {
+    "Exploration": "Explore the dungeon and discover new areas.",
+    "Extermination": "Defeat dangerous creatures lurking in the dungeon."
+}
+
+QUEST_DATA = [
+    {
+        "type": "Exploration",
+        "objective": "Explore the dungeon and discover new areas.",
+        "target": 15,  # Explore 15 rooms
+        "current_progress": 0,
+        "reward": {"coins": 100, "experience": 50},
+        "description": "Venture deep into the dungeon and explore 15 rooms. Uncover its secrets and return for a handsome reward."
+    },
+    {
+        "type": "Extermination",
+        "objective": "Defeat dangerous creatures lurking in the dungeon.",
+        "target": {"monster_type": "Greenskin", "count": 5},  # Kill 5 Greenskins
+        "current_progress": 0,
+        "reward": {"coins": 150, "experience": 75},
+        "description": "Protect the realm by eliminating 5 Greenskin creatures infesting the dungeon. Your bravery will be rewarded."
+    },
+    # ... more quests
+]
 # --- Constants for Equipment Screen (Add near other UI constants) ---
 EQUIPMENT_MENU_WIDTH = 300
 EQUIPMENT_MENU_HEIGHT = 400
@@ -766,6 +790,23 @@ CLASS_ABILITIES = {
         },
     ],
 }
+def generate_quest_list(num_quests=2):
+    """Generates a list of quests to be offered to the player."""
+    return random.sample(QUEST_DATA, num_quests)
+
+def accept_quest(player, quest):
+    """Accepts the given quest, updating game state."""
+    player.active_quest = quest
+    print(f"Quest accepted: {quest['objective']}")
+
+def check_quest_progress(player, current_enemy=None):
+    """Checks and updates quest progress based on player actions."""
+    # Here you would add logic to:
+    # - Check if the player has completed the objective
+    # - Update progress if necessary
+    # - Give rewards if the quest is complete
+    # (Implementation will depend on how you want to store and manage quests)
+    pass  # Replace with actual implementation
 def draw_outlined_text(surface, text, font, color, outline_color, position):
     """Draws text with an outline for better readability."""
     text_surface = font.render(text, True, color)
@@ -2269,12 +2310,6 @@ def roomroll():
         return "empty"
     content_choices = list(level_probabilities.keys())
     probabilities = list(level_probabilities.values())
-
-    print(f"--- roomroll() called ---")  # Debug print
-    print(f"  roomlvl: {roomlvl}")  # Debug print
-    print(f"  content_choices: {content_choices}")  # Debug print
-    print(f"  probabilities: {probabilities}")  # Debug print
-
     rolled_content = random.choices(content_choices, weights=probabilities, k=1)[0]
     print(f"  Rolled content: {rolled_content}")  # Debug print
     return rolled_content

@@ -10,10 +10,10 @@
  <tile id="14">
   <image source="../../assets/player.png" width="32" height="32"/>
  </tile>
- <tile id="15">
+ <tile id="15" type="stairs_down">
   <image source="../../assets/stairs_down.png" width="32" height="32"/>
  </tile>
- <tile id="16">
+ <tile id="16" type="stairs_up">
   <image source="../../assets/stairs_up.png" width="32" height="32"/>
  </tile>
  <tile id="17">
@@ -31,13 +31,10 @@
   </properties>
   <image source="../../assets/wall.png" width="32" height="32"/>
  </tile>
- <tile id="20">
+ <tile id="20" type="chest">
   <image source="../../assets/chest.png" width="32" height="32"/>
  </tile>
- <tile id="21">
-  <properties>
-   <property name="walkable" type="bool" value="true"/>
-  </properties>
+ <tile id="21" type="door">
   <image source="../../assets/door.png" width="32" height="32"/>
  </tile>
  <tile id="22">

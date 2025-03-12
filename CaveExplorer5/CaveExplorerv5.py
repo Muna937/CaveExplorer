@@ -513,12 +513,13 @@ class Tile(pygame.sprite.Sprite):  # Base class for all tile types
 
 class DungeonTile(Tile):
     def __init__(self, tile_type, walkable, image=None, x=None, y=None):
-        super().__init__(tile_type, walkable, image, x, y)  # Call Tile's __init__
-        self.enemies = [] # List to hold enemies.
-
-        self.visible = False # For fog of war.
-        self.objects = [] # List of objects on the tile.
+        super().__init__(tile_type, walkable, image, x, y)
+        self.enemies = []  # List to hold enemies on the tile
+        self.explored = False
+        self.visible = False  # For fog of war (optional)
+        self.objects = []  # Added for chest and doors
         self._is_cleared = False
+
 
     def is_cleared(self):
         return self._is_cleared
@@ -526,44 +527,37 @@ class DungeonTile(Tile):
     def set_cleared(self, cleared):
         self._is_cleared = cleared
 
+
     def interact(self, party, game_state):
-        # --- Stair Interaction ---
+       #Stairs Logic
         if self.tile_type == "stairs_up":
             if game_state.current_floor > 1:
                 game_state.current_floor -= 1
                 game_state.generate_floor()
-                party.x, party.y = game_state.current_map.down_stair_location
+                party.x, party.y = game_state.current_map.down_stair_location # Move party
                 add_to_combat_log("You ascend the stairs.")
             else:
-                add_to_combat_log("There are no stairs leading up.")
+                add_to_combat_log("There is no way to go but down...") # Changed message.
         elif self.tile_type == "stairs_down":
             game_state.current_floor += 1
             game_state.generate_floor()
-            party.x, party.y = game_state.current_map.up_stair_location
+            party.x, party.y = game_state.current_map.up_stair_location # Move party
             add_to_combat_log("You descend the stairs.")
-
-        # --- Chest Interaction ---
+        #Chest Logic
         elif self.tile_type == "chest":
             add_to_combat_log("You open the chest!")
-            # Give items/gold from the chest's contents
             for item_name, quantity in self.objects[0]["contents"].items():
                 party.add_to_inventory(item_name, quantity)
                 add_to_combat_log(f"You found {quantity} {item_name}(s)!")
-            # self.image = None  # Remove the chest image (replace with open chest if you have one) <- THIS WAS THE PROBLEM
-            # Instead of setting to None, set to a default, or a 'looted chest' image.
-            self.image = images.get("floor")  # Or images.get("looted_chest") if you have it
-            if self.image is None:
-                print("Error: default image 'floor' (or looted_chest) not found") # Or raise exception
-
-            self.walkable = True
-            self.objects = []  # Remove the chest object
-
-        # --- Door Interaction ---
+            self.image = None # Change image
+            self.walkable = True # Can now walk on the space.
+            self.objects = [] # Empty
+        #Door Logic
         elif self.tile_type == "door":
             add_to_combat_log("You open the door.")
-            self.tile_type = "floor"
-            self.image = images["floor"]  # This line is fine, as we're assigning a Surface.
-            self.walkable = True
+            self.tile_type = "floor" # Change the tile
+            self.image = images["floor"] # Change the image to floor.
+            self.walkable = True # Can now walk here.
 
 class TownTile(Tile):  # New TownTile class
     def __init__(self, tile_type, walkable, image=None, x= None, y=None):
@@ -592,6 +586,7 @@ class Dungeon:
         self.down_stair_location = None  # (x, y) tuple
         self.start_x = None #Starting position in dungeon
         self.start_y = None
+        self.highest_floor=1
 
     def generate_tiles(self):
         # Initialize all tiles as walls
@@ -670,15 +665,9 @@ class Dungeon:
         room1 = self.rooms[0]
         x1, y1 = room1.center
         tiles[y1][x1] = DungeonTile("stairs_up", True, x=x1, y=y1)  # Use the correct string for tile_type
-        self.up_stair_location = (x1, y1) # Set location
+        self.up_stair_location = (x1,y1)
         self.start_x = x1  # Set start_x to the stairs up location
         self.start_y = y1
-
-        # Place stairs down in the last room
-        room2 = self.rooms[-1]
-        x2, y2 = room2.center
-        tiles[y2][x2] = DungeonTile("stairs_down", True, x=x2, y=y2)  # Use the correct string
-        self.down_stair_location = (x2,y2) # Set Location
 
     def place_objects(self, tiles):
         #Place object like chests and doors
@@ -991,21 +980,28 @@ class Party:
             if dungeon.is_walkable(new_x, new_y):
                 self.x = new_x
                 self.y = new_y
+                # --- RANDOM ENCOUNTER CHECK (AFTER successful move) ---
+                if isinstance(dungeon, Dungeon):  # Only in dungeons
+                    if random.random() < 0.1:  # 10% chance of encounter per step
+                        add_to_combat_log("A monster appears!")
+                        self.start_random_encounter(game_state, dungeon)
+                        return # Important, exit out of the function after starting.
+                # --- END RANDOM ENCOUNTER CHECK ---
                 # Check for interaction *after* moving
-                if isinstance(dungeon, WorldMap): # Check if WorldMap
-                    dungeon.interact_with_tile(new_x, new_y, self, game_state) # Interact
-                elif isinstance(dungeon, Dungeon): # Check if dungeon
-                    dungeon.interact_with_tile(new_x,new_y, self, game_state)
-                elif isinstance(dungeon, Town): #Check if town
+                if isinstance(dungeon, WorldMap):  # Check if it's the world map
+                    dungeon.interact_with_tile(new_x, new_y, self, game_state)
+                elif isinstance(dungeon, Dungeon): # Check if its a dungeon
+                    dungeon.interact_with_tile(new_x, new_y, self, game_state)
+                elif isinstance(dungeon, Town): # Check if town
                     dungeon.interact_with_tile(new_x, new_y, self, game_state)
                 return True  # Movement successful
             else:
                 add_to_combat_log("You can't move there.")
-                return False  # Blocked
+                return False
         else:
-             add_to_combat_log("You can't go that way.") # Out of bounds
-             return False
-
+            add_to_combat_log("You can't go that way.")
+            return False
+    
     def update_all_buffs(self): # Update all party members buffs
         for member in self.members:
             member.update_buffs()
@@ -1087,9 +1083,48 @@ class GameState:
         # --- Placeholder for save/load system ---
         self.save_file = "savegame.json"
 
-    def generate_dungeon(self):
-        #Placeholder, loads from tiled maps now.
-        pass
+    def generate_floor(self):
+        # Select the dungeon to load from
+        dungeon_type = "forest" # Add to the dungeon types
+        difficulty = "easy"  # TODO: Implement difficulty selection
+        floor_num = self.current_floor
+
+        possible_maps = DUNGEONS.get(dungeon_type, {}).get(difficulty, [])
+        #If we cannot find maps exit the function.
+        if not possible_maps:
+            print(f"Error: No maps found for dungeon type '{dungeon_type}', difficulty '{difficulty}'")
+            return
+
+        #Select map file, and map path.
+        map_file = random.choice(possible_maps)
+        map_path = os.path.join("data", "maps", "dungeons", map_file)
+
+        if map_file == "world_map.tmx": # If the map file is the world map.
+                map_path = os.path.join("data","maps", map_file) # Set correct path
+                self.current_map = load_tiled_map(map_path, self)  # Load the Tiled map!
+                self.current_state = STATE_GAME
+                # Find town and set to be outside.
+                for y, row in enumerate(self.current_map.tiles):
+                    for x, tile in enumerate(row):
+                        if tile.tile_type == "town":
+                            self.party.x = x
+                            self.party.y = y
+                            break  # Only need to find one town (for now)
+                    else:
+                        continue  # Only executed if the inner loop did NOT break
+                    break  # Only executed if the inner loop DID break
+                add_to_combat_log("You have returned to the overworld")
+                self.current_floor = 1 # Reset
+        else:
+            self.current_map = load_tiled_map(map_path, self)
+            #Going down a floor logic.
+            if floor_num > self.current_map.highest_floor:
+                self.party.x, self.party.y = self.current_map.up_stair_location
+                self.current_map.highest_floor = floor_num
+            #Going up a floor
+            else:
+                 self.party.x, self.party.y = self.current_map.down_stair_location # Move party
+            add_to_combat_log(f"Entering floor {self.current_floor} of {dungeon_type} dungeon.")
 
     def enter_dungeon(self, dungeon_type):
         # Choose a random map file based on type, difficulty (easy for now), and floor.
@@ -1102,7 +1137,7 @@ class GameState:
             return  # Or raise an exception, or generate a default map
 
         map_file = random.choice(possible_maps)
-        map_path = os.path.join("data", "maps", "dungeons", map_file)
+        map_path = os.path.join("data", "maps", "dungeons", map_file) #Added map path
         print(f"Loading dungeon map: {map_path}")  # Debug print
         self.current_map = load_tiled_map(map_path, self)  # Load the Tiled map!
         self.current_state = STATE_GAME
@@ -1112,11 +1147,14 @@ class GameState:
         self.party.y = self.current_map.up_stair_location[1]
         print(f"Entering dungeon: {dungeon_type}, floor {floor_num}, map: {map_file}")
 
+
     def next_floor(self):
         # Go to next floor (or previous, for stairs up).
+        # This is a simplified example; you'll need to handle going back to the
+        # world map, etc.
         self.current_floor += 1
-        dungeon_type = "forest"  # Replace
-        difficulty = "easy"  # Replace
+        dungeon_type = "forest"  # Replace with actual dungeon type
+        difficulty = "easy"  # Replace with actual difficulty
         map_files = DUNGEONS.get(dungeon_type, {}).get(difficulty, [])
 
         if not map_files:
@@ -1124,11 +1162,10 @@ class GameState:
             return
 
         map_file = random.choice(map_files)
-        map_path = os.path.join("data", "maps", "dungeons", map_file)
-        self.current_map = load_tiled_map(map_path, self) # Load
-        self.party.x, self.party.y = self.current_map.up_stair_location #Move
+        map_path = os.path.join("data","maps", "dungeons", map_file)
+        self.current_map = load_tiled_map(map_path, self)
+        self.party.x, self.party.y = self.current_map.up_stair_location
         add_to_combat_log(f"Entering floor {self.current_floor} of {dungeon_type} dungeon.")
-
     def enter_town(self, town_name):
         map_path = os.path.join("data","maps", "town_map.tmx") # Load town
         self.current_map = load_tiled_map(map_path, self)

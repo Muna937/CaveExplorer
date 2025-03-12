@@ -1,0 +1,286 @@
+{
+    "skills": {
+      "fireball": {
+        "name": "Fireball",
+        "description": "Launches a ball of fire at a single target.",
+        "type": "attack",
+        "element": "fire",
+        "cost": 10,
+        "effect": {
+          "damage": 20,
+          "target_type": "single"
+        },
+        "cooldown": 2,
+        "requirements": {
+          "level": 1,
+          "intelligence": 10
+        },
+         "icon": "assets/images/skills/fireball.png"
+      },
+      "ice_bolt": {
+        "name": "Ice Bolt",
+        "description": "Fires a bolt of ice, dealing damage and potentially slowing the target.",
+        "type": "attack",
+        "element": "ice",
+        "cost": 12,
+        "effect": {
+          "damage": 15,
+          "target_type": "single",
+          "status_effect": "slow",
+          "status_duration": 3
+        },
+        "cooldown": 3,
+        "requirements": {
+          "level": 3,
+          "intelligence": 12
+        },
+        "icon": "assets/images/skills/ice_bolt.png"
+      },
+      "heal": {
+        "name": "Heal",
+        "description": "Restores health to a single target.",
+        "type": "healing",
+        "element": "holy",
+        "cost": 15,
+        "effect": {
+          "heal": 25,
+          "target_type": "single"
+        },
+        "cooldown": 4,
+        "requirements": {
+            "level": 1,
+            "wisdom": 10
+        },
+        "icon": "assets/images/skills/heal.png"
+      },
+      "cleave": {
+        "name": "Cleave",
+        "description": "Strikes multiple enemies in front of the user.",
+        "type": "attack",
+        "element": "physical",
+        "cost": 8,
+        "effect": {
+          "damage": 12,
+          "target_type": "aoe",
+          "radius": 1
+        },
+        "cooldown": 5,
+        "requirements": {
+            "level": 1,
+          "strength": 10
+        },
+        "icon": "assets/images/skills/cleave.png"
+      },
+      "sneak": {
+        "name": "Sneak",
+        "description": "Attempts to move stealthily, avoiding detection.",
+        "type": "utility",
+        "element": "none",
+        "cost": 5,
+        "effect": {
+          "status_effect": "stealth",
+          "status_duration": 10
+        },
+        "cooldown": 10,
+          "requirements":{
+            "level": 1,
+            "dexterity": 10
+          },
+        "icon": "assets/images/skills/sneak.png"
+      },
+      "power_attack": {
+        "name": "Power Attack",
+        "description": "A strong attack that deals increased damage.",
+        "type": "attack",
+        "element": "physical",
+        "cost": 6,
+        "effect": {
+          "damage": 18,
+          "target_type": "single"
+        },
+        "cooldown": 3,
+          "requirements":{
+            "level": 3,
+            "strength": 12
+          },
+        "icon": "assets/images/skills/power_attack.png"
+      },
+       "whirlwind": {
+        "name": "Whirlwind",
+        "description": "Attacks all enemies in melee range.",
+        "type": "attack",
+        "element": "physical",
+        "cost": 12,
+        "effect": {
+          "damage": 15,
+          "target_type": "aoe",
+          "radius": 2
+        },
+        "cooldown": 6,
+         "requirements":{
+            "level": 5,
+            "strength": 15
+          },
+        "icon": "assets/images/skills/whirlwind.png"
+      },
+      "shield_bash": {
+        "name": "Shield Bash",
+        "description": "Bashes an enemy with your shield, dealing damage and potentially stunning them.",
+        "type": "attack",
+        "element": "physical",
+        "cost": 4,
+        "effect": {
+          "damage": 8,
+          "target_type": "single",
+          "status_effect": "stun",
+          "status_duration": 1
+        },
+        "cooldown": 4,
+        "requirements": {
+            "level": 2,
+            "strength": 10,
+            "equipped_item_type": "shield"
+        },
+         "icon": "assets/images/skills/shield_bash.png"
+      },
+      "lightning_strike": {
+        "name": "Lightning Strike",
+        "description": "Calls down a bolt of lightning to strike a single target.",
+        "type": "attack",
+        "element": "lightning",
+        "cost": 18,
+        "effect": {
+          "damage": 30,
+          "target_type": "single"
+        },
+        "cooldown": 5,
+         "requirements":{
+            "level": 4,
+            "intelligence": 14
+          },
+        "icon": "assets/images/skills/lightning_strike.png"
+      },
+      "teleport": {
+        "name": "Teleport",
+        "description": "Instantly moves the user to a nearby location.",
+        "type": "utility",
+        "element": "none",
+        "cost": 20,
+        "effect": {
+          "range": 5,
+          "target_type": "location"
+        },
+        "cooldown": 8,
+        "requirements":{
+          "level": 5,
+          "intelligence": 16
+        },
+        "icon": "assets/images/skills/teleport.png"
+      },
+      "backstab": {
+          "name": "Backstab",
+          "description": "A sneaky attack that deals extra damage when striking from behind.",
+          "type": "attack",
+          "element": "physical",
+          "cost": 7,
+          "effect":{
+            "damage": 10,
+            "target_type": "single",
+            "condition": "behind"
+          },
+          "cooldown": 4,
+          "requirements": {
+            "level": 2,
+            "dexterity": 12
+          },
+          "icon": "assets/images/skills/backstab.png"
+      },
+      "evade":{
+        "name": "Evade",
+        "description": "Increases the user's chance to dodge attacks for a short time.",
+        "type": "buff",
+        "element": "none",
+        "cost": 9,
+        "effect":{
+          "status_effect": "evasion",
+          "status_duration": 3,
+          "target_type": "self"
+        },
+        "cooldown": 6,
+        "requirements":{
+          "level": 3,
+          "dexterity": 14
+        },
+        "icon": "assets/images/skills/evade.png"
+      },
+      "lockpick": {
+        "name": "Lockpick",
+        "description": "Attempts to unlock a locked door or chest.",
+        "type": "utility",
+        "element": "none",
+        "cost": 4,
+        "effect": {
+          "difficulty": "variable"
+        },
+        "cooldown": 2,
+        "requirements": {
+          "level": 1,
+          "dexterity": 10
+        },
+        "icon": "assets/images/skills/lockpick.png"
+      },
+      "bless": {
+        "name": "Bless",
+        "description": "Increases a target's attack power for a short time.",
+        "type": "buff",
+        "element": "holy",
+        "cost": 12,
+        "effect": {
+          "status_effect": "blessed",
+          "status_duration": 5,
+          "target_type": "single"
+        },
+        "cooldown": 7,
+          "requirements":{
+            "level": 3,
+            "wisdom": 14
+          },
+        "icon": "assets/images/skills/bless.png"
+  
+      },
+      "smite": {
+        "name": "Smite",
+        "description": "Deals holy damage to a single target.",
+        "type": "attack",
+        "element": "holy",
+        "cost": 15,
+        "effect": {
+          "damage": 25,
+          "target_type": "single"
+        },
+        "cooldown": 4,
+        "requirements":{
+            "level": 2,
+            "wisdom": 12
+          },
+         "icon": "assets/images/skills/smite.png"
+      },
+      "resurrect": {
+        "name": "Resurrect",
+        "description": "Brings a fallen ally back to life.",
+        "type": "healing",
+        "element": "holy",
+        "cost": 30,
+        "effect": {
+          "revive": true,
+          "target_type": "single"
+        },
+        "cooldown": 10,
+          "requirements":{
+            "level": 5,
+            "wisdom": 18
+          },
+          "icon": "assets/images/skills/resurrect.png"
+      }
+    }
+  }

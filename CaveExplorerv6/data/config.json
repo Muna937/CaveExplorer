@@ -1,0 +1,10 @@
+{
+    "screen_width": 800,
+    "screen_height": 600,
+    "tile_size": 32,
+    "game_title": "My Awesome RPG",
+    "fps": 60,
+    "save_file": "savegame.json",
+    "debug_mode": false,
+    "default_volume": 0.5
+  }

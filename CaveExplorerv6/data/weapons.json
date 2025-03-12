@@ -1,0 +1,138 @@
+{
+    "weapons": {
+      "sword_of_valor": {
+        "name": "Sword of Valor",
+        "type": "weapon",
+        "weapon_type": "sword",
+        "description": "A legendary sword, imbued with courage.",
+        "value": 1000,
+        "attack": 25,
+        "durability": 100,
+        "max_durability": 100,
+        "icon": "assets/images/weapons/sword_of_valor.png",
+        "stackable": false,
+        "requirements": {
+          "level": 5,
+          "strength": 15
+        },
+        "effects": {
+          "on_hit": { "chance": 0.1, "effect": "stun", "duration": 1 }
+        }
+      },
+      "rusty_dagger": {
+        "name": "Rusty Dagger",
+        "type": "weapon",
+        "weapon_type": "dagger",
+        "description": "A rusty, old dagger. Not very effective.",
+        "value": 10,
+        "attack": 2,
+        "durability": 20,
+        "max_durability": 20,
+        "icon": "assets/images/weapons/rusty_dagger.png",
+        "stackable": false,
+          "requirements": {
+            "level": 1
+          }
+      },
+      "orcish_axe": {
+        "name": "Orcish Axe",
+        "type": "weapon",
+        "weapon_type": "axe",
+        "description": "A crude but powerful axe, favored by orcs.",
+        "value": 50,
+        "attack": 15,
+        "durability": 60,
+        "max_durability": 60,
+        "icon": "assets/images/weapons/orcish_axe.png",
+        "stackable": false,
+         "requirements": {
+            "level": 2,
+            "strength": 10
+          }
+      },
+      "bone_club": {
+        "name": "Bone Club",
+        "type": "weapon",
+        "weapon_type": "mace",
+        "description": "A simple club made from bone.",
+        "value": 20,
+        "attack": 8,
+        "durability": 40,
+        "max_durability": 40,
+        "icon": "assets/images/weapons/bone_club.png",
+        "stackable": false,
+        "requirements":{
+          "level": 1
+        }
+      },
+      "fire_staff": {
+          "name": "Fire Staff",
+          "type": "weapon",
+          "weapon_type": "staff",
+          "description": "A staff imbued with the power of fire.",
+          "value": 150,
+          "attack": 5,
+          "durability": 45,
+          "max_durability":45,
+          "icon": "assets/images/weapons/fire_staff.png",
+          "stackable": false,
+          "requirements":{
+            "level": 3,
+            "intelligence": 12
+          },
+          "effects":{
+            "on_hit": {"chance": 0.3, "effect": "burn", "duration": 3, "damage_per_turn": 5}
+          }
+      },
+        "shortbow":{
+          "name": "Shortbow",
+          "type": "weapon",
+          "weapon_type": "bow",
+          "description": "A small bow, easy to handle.",
+          "value": 80,
+          "attack": 10,
+          "durability": 50,
+          "max_durability": 50,
+          "icon": "assets/images/weapons/shortbow.png",
+          "stackable": false,
+          "requirements": {
+            "level": 2,
+            "dexterity": 10
+          },
+          "range": 5
+        },
+        "wand_of_sparks":{
+          "name": "Wand of Sparks",
+          "type": "weapon",
+          "weapon_type": "wand",
+          "description": "Emits small sparks of magical energy.",
+          "value": 30,
+          "attack": 3,
+          "durability": 30,
+          "max_durability": 30,
+          "icon": "assets/images/weapons/wand_of_sparks.png",
+          "stackable": false,
+          "requirements":{
+            "level": 1,
+            "intelligence": 8
+          }
+  
+        },
+        "greatsword":{
+          "name": "Greatsword",
+          "type": "weapon",
+          "weapon_type": "greatsword",
+          "description": "A massive, two-handed sword, capable of dealing devastating blows.",
+          "value": 300,
+          "attack": 30,
+          "durability": 90,
+          "max_durability": 90,
+          "icon": "assets/images/weapons/greatsword.png",
+          "stackable": false,
+          "requirements":{
+            "level": 6,
+            "strength": 18
+          }
+        }
+    }
+  }

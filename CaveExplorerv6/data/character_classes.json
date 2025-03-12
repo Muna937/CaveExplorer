@@ -1,0 +1,69 @@
+{
+    "classes": {
+      "warrior": {
+        "name": "Warrior",
+        "description": "A strong and resilient fighter, skilled with melee weapons.",
+        "base_stats": {
+          "strength": 15,
+          "dexterity": 10,
+          "constitution": 12,
+          "intelligence": 8,
+          "wisdom": 9,
+          "charisma": 10
+        },
+        "allowed_weapon_types": ["sword", "axe", "mace", "greatsword"],
+        "allowed_armor_types": ["leather", "chainmail", "plate"],
+        "starting_skills": ["cleave"],
+        "skill_progression": ["power_attack", "whirlwind", "shield_bash"]
+      },
+      "mage": {
+        "name": "Mage",
+        "description": "A master of arcane arts, wielding powerful spells.",
+        "base_stats": {
+          "strength": 8,
+          "dexterity": 10,
+          "constitution": 9,
+          "intelligence": 15,
+          "wisdom": 12,
+          "charisma": 10
+        },
+        "allowed_weapon_types": ["staff", "dagger", "wand"],
+        "allowed_armor_types": ["cloth"],
+        "starting_skills": ["fireball"],
+        "skill_progression": ["ice_bolt", "lightning_strike", "teleport"]
+      },
+      "rogue": {
+        "name": "Rogue",
+        "description": "A sneaky and agile character, specializing in stealth and deception.",
+        "base_stats": {
+          "strength": 10,
+          "dexterity": 15,
+          "constitution": 10,
+          "intelligence": 12,
+          "wisdom": 8,
+          "charisma": 9
+        },
+        "allowed_weapon_types": ["dagger", "shortsword", "bow"],
+        "allowed_armor_types": ["leather"],
+        "starting_skills": ["sneak"],
+        "skill_progression": ["backstab", "evade", "lockpick"]
+  
+      },
+      "cleric":{
+        "name": "Cleric",
+        "description": "A holy warrior, channeling divine power to heal and protect.",
+        "base_stats":{
+          "strength": 12,
+          "dexterity": 8,
+          "constitution": 14,
+          "intelligence": 10,
+          "wisdom": 15,
+          "charisma": 10
+        },
+        "allowed_weapon_types": ["mace", "staff"],
+        "allowed_armor_types": ["leather", "chainmail"],
+        "starting_skills": ["heal"],
+        "skill_progression": ["bless", "smite", "resurrect"]
+      }
+    }
+  }

@@ -1,0 +1,74 @@
+{
+    "quests": {
+      "collect_herbs": {
+        "name": "Gather Herbs",
+        "description": "The village healer needs 5 healing herbs. You can find them growing in the nearby forest.",
+        "objectives": [
+          {
+            "type": "collect",
+            "target": "healing_herb",
+            "amount": 5,
+            "status": "incomplete"
+          }
+        ],
+        "rewards": {
+          "gold": 25,
+          "items": ["potion"],
+          "experience": 50
+        },
+        "prerequisites": {},
+        "quest_giver": "old_man_town",
+        "is_repeatable": false,
+        "next_quest": null
+      },
+      "defeat_goblins": {
+        "name": "Goblin Trouble",
+        "description": "Goblins have been raiding the outskirts of town. Defeat 5 of them to protect the villagers.",
+        "objectives": [
+          {
+            "type": "kill",
+            "target": "goblin",
+            "amount": 5,
+            "status": "incomplete"
+          }
+        ],
+        "rewards": {
+          "gold": 50,
+          "items": ["rusty_dagger"],
+          "experience": 100
+        },
+        "prerequisites": {},
+        "quest_giver": "old_man_town",
+        "is_repeatable": true,
+        "next_quest": "rescue_villager"
+  
+      },
+      "rescue_villager":{
+        "name": "Rescue Villager",
+        "description": "A villager has been captured take them out!",
+        "objectives":[
+          {
+            "type": "kill",
+            "target": "orc",
+            "amount": 3,
+            "status": "incomplete"
+          },
+          {
+            "type": "reach",
+            "target": [20, 20],
+            "amount": 1,
+            "status": "incomplete"
+          }
+        ],
+        "rewards": {
+          "gold": 75,
+          "items": [],
+          "experience": 120
+        },
+        "prerequisites": {"quests":["defeat_goblins"]},
+        "quest_giver": "old_man_town",
+        "is_repeatable": false,
+        "next_quest": null
+      }
+    }
+  }

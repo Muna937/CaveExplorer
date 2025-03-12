@@ -1,0 +1,44 @@
+{
+    "npcs": {
+      "old_man_town": {
+        "name": "Old Man",
+        "dialogue": "town_elder",
+        "sprite": "assets/images/npcs/old_man.png",
+        "position": { "map": "town", "x": 10, "y": 12 },
+        "is_merchant": false,
+        "quest_giver": true,
+        "quests": ["collect_herbs"],
+        "default_greeting": "Welcome, traveler.  Have you come to help us?"
+      },
+      "blacksmith_town": {
+        "name": "Torvin Stonebeard",
+        "dialogue": "blacksmith",
+        "sprite": "assets/images/npcs/blacksmith.png",
+        "position": { "map": "town", "x": 25, "y": 8 },
+        "is_merchant": true,
+        "inventory": ["sword_of_valor", "leather_armor", "rusty_dagger"],
+        "quest_giver": false,
+         "default_greeting": "Need some work done on your gear? Or perhaps something new?"
+      },
+      "shopkeeper_town": {
+        "name": "Elara Meadowlight",
+        "dialogue": "shopkeeper",
+        "sprite": "assets/images/npcs/shopkeeper.png",
+        "position": { "map": "town", "x": 18, "y": 15 },
+        "is_merchant": true,
+        "inventory": ["potion", "super_potion", "scroll_of_wisdom"],
+        "quest_giver": false,
+        "default_greeting": "Welcome to my shop! Take a look around."
+  
+      },
+      "guard_dungeon_entrance":{
+        "name": "Dungeon Guard",
+        "dialogue": "dungeon_guard",
+        "sprite": "assets/images/npcs/guard.png",
+        "position": {"map": "dungeon1", "x": 2, "y": 2},
+        "is_merchant": false,
+        "quest_giver": false,
+        "default_greeting": "Halt! Who goes there?"
+      }
+    }
+  }

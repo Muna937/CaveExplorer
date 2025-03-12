@@ -1,0 +1,61 @@
+{
+    "experience_table": [
+      0,      
+      100,    
+      250,    
+      450,    
+      700,    
+      1000,   
+      1350,   
+      1750,  
+      2200,   
+      2700,   
+      3250,  
+      3850,   
+      4500,  
+      5200,
+      6000,
+      7000,
+      8500,
+      10000,
+      12000,
+       15000 
+    ],
+      "stat_increases_per_level":{
+        "warrior":{
+          "strength": 2,
+          "dexterity": 1,
+          "constitution": 2,
+          "intelligence": 0,
+          "wisdom": 0,
+          "charisma": 1
+        },
+        "mage":{
+          "strength": 0,
+          "dexterity": 1,
+          "constitution": 1,
+          "intelligence": 2,
+          "wisdom": 2,
+          "charisma": 0
+        },
+        "rogue":{
+          "strength": 1,
+          "dexterity": 2,
+          "constitution": 1,
+          "intelligence": 1,
+          "wisdom": 0,
+          "charisma": 1
+        },
+         "cleric":{
+          "strength": 1,
+          "dexterity": 1,
+          "constitution": 1,
+          "intelligence": 1,
+          "wisdom": 2,
+          "charisma": 0
+        }
+      },
+      "skill_points_per_level": 2,
+      "attribute_points_per_level": 1
+  
+  }

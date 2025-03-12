@@ -1,0 +1,102 @@
+{
+    "items": {
+      "potion": {
+        "name": "Healing Potion",
+        "type": "consumable",
+        "description": "Restores 20 HP.",
+        "value": 50,
+        "effect": { "hp": 20 },
+        "icon": "assets/images/potion.png",
+        "stackable": true,
+        "max_stack": 10
+      },
+      "super_potion": {
+        "name": "Super Potion",
+        "type": "consumable",
+        "description": "Restores 50 HP.",
+        "value": 100,
+        "effect": { "hp": 50 },
+        "icon": "assets/images/super_potion.png",
+        "stackable": true,
+        "max_stack": 5
+      },
+      "sword_of_valor": {
+        "name": "Sword of Valor",
+        "type": "weapon",
+        "weapon_type": "sword",
+        "description": "A legendary sword.",
+        "value": 1000,
+        "attack": 25,
+        "durability": 100,
+        "max_durability": 100,
+        "icon": "assets/images/sword.png",
+        "stackable": false,
+          "requirements": {
+            "level": 5,
+            "strength": 15
+          }
+      },
+      "leather_armor": {
+        "name": "Leather Armor",
+        "type": "armor",
+        "armor_type": "leather",
+        "description": "Basic leather armor.",
+        "value": 75,
+        "defense": 5,
+        "durability": 50,
+        "max_durability": 50,
+        "icon": "assets/images/armor.png",
+        "stackable": false
+      },
+      "mana_potion" :{
+        "name": "Mana Potion",
+        "type": "consumable",
+        "description": "Restores 10 MP.",
+        "value": 60,
+        "effect": {"mp": 10},
+        "icon": "assets/images/mana_potion.png",
+        "stackable": true,
+        "max_stack": 10
+      },
+        "gold_coin":{
+          "name": "Gold Coin",
+          "type": "currency",
+          "description": "Standard currency of the realm",
+          "value": 1,
+          "icon": "assets/images/gold_coin.png",
+          "stackable": true,
+          "max_stack": 9999
+        },
+      "scroll_of_wisdom": {
+        "name": "Scroll of Wisdom",
+        "type": "consumable",
+        "description": "Grants a small amount of experience.",
+        "value": 200,
+        "effect": { "xp": 100 },
+        "icon": "assets/images/scroll.png",
+        "stackable": true,
+        "max_stack": 5
+      },
+      "rusty_dagger": {
+        "name": "Rusty Dagger",
+        "type": "weapon",
+        "weapon_type": "dagger",
+        "description": "A rusty, old dagger. Not very effective.",
+        "value": 10,
+        "attack": 2,
+        "durability": 20,
+        "max_durability": 20,
+        "icon": "assets/images/rusty_dagger.png",
+        "stackable": false
+      },
+        "healing_herb": {
+          "name": "Healing Herb",
+          "type": "ingredient",
+          "description": "A common herb with medicinal properties.",
+          "value": 5,
+          "icon": "assets/images/herb.png",
+          "stackable": true,
+          "max_stack": 99
+      }
+    }
+  }

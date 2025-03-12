@@ -1,0 +1,85 @@
+{
+    "armor": {
+      "leather_armor": {
+        "name": "Leather Armor",
+        "type": "armor",
+        "armor_type": "leather",
+        "description": "Basic leather armor, offering minimal protection.",
+        "value": 75,
+        "defense": 5,
+        "durability": 50,
+        "max_durability": 50,
+        "icon": "assets/images/armor/leather_armor.png",
+        "stackable": false,
+        "requirements": {
+          "level": 1
+        }
+      },
+      "chainmail_armor": {
+        "name": "Chainmail Armor",
+        "type": "armor",
+        "armor_type": "chainmail",
+        "description": "Armor made of interlocking metal rings.",
+        "value": 200,
+        "defense": 12,
+        "durability": 80,
+        "max_durability": 80,
+        "icon": "assets/images/armor/chainmail_armor.png",
+        "stackable": false,
+        "requirements": {
+          "level": 3,
+          "strength": 10
+        }
+      },
+      "plate_armor": {
+        "name": "Plate Armor",
+        "type": "armor",
+        "armor_type": "plate",
+        "description": "Heavy plate armor, offering excellent protection.",
+        "value": 500,
+        "defense": 20,
+        "durability": 120,
+        "max_durability": 120,
+        "icon": "assets/images/armor/plate_armor.png",
+        "stackable": false,
+        "requirements": {
+          "level": 5,
+          "strength": 15
+        }
+      },
+      "cloth_robe": {
+        "name": "Cloth Robe",
+        "type": "armor",
+        "armor_type": "cloth",
+        "description": "A simple cloth robe. Provides almost no protection.",
+        "value": 10,
+        "defense": 1,
+        "durability": 30,
+        "max_durability": 30,
+        "icon": "assets/images/armor/cloth_robe.png",
+        "stackable": false,
+        "requirements": {
+          "level": 1
+        }
+      },
+      "mage_armor":{
+        "name": "Mage Armor",
+        "type": "armor",
+        "armor_type": "cloth",
+        "description": "Enchanted mage armor. Provides mana regeneration",
+        "value": 150,
+        "defense": 3,
+        "durability": 40,
+        "max_durability": 40,
+        "icon": "assets/images/armor/mage_armor.png",
+        "stackable": false,
+         "requirements": {
+          "level": 3
+        },
+        "effects": {
+          "mana_regen": 1
+        }
+  
+      }
+    }
+  }

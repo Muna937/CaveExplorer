@@ -25,6 +25,7 @@
 #   - save_load.py:  Will need to handle saving/loading the *state* of NPCs, monsters, and items on the map.
 #   - combat.py: (Indirectly) For monster placement and AI.
 
+# world.py (No changes needed from the *previous* corrected version)
 from tile import Tile
 from npc import NPC
 from monster import Monster
@@ -41,7 +42,7 @@ class World:
         self.npcs = {}     # Store NPC instances {npc_id: NPC object}
         self.monsters = []  # Store Monster instances
         self.items = [] # Store Item instances
-        self.load_map(self.current_map_name) # Load initial map
+        self.load_map(self.current_map_name)
 
     def load_map(self, map_name):
         map_filepath = os.path.join("data", "maps", f"{map_name}.json")
@@ -226,7 +227,6 @@ class World:
       if success:
         self.current_map_name = map_name
       return success, message
-
 
     def render(self, screen): #Placeholder
       pass

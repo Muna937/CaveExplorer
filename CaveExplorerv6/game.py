@@ -1,4 +1,4 @@
-# game.py
+#game.py
 
 # Goals:
 #   - Initialize and manage the overall game state.
@@ -9,11 +9,11 @@
 #   - Manage player interactions with NPCs and the world (dialogue, combat).
 #   - Coordinate saving and loading of the game.
 #   - Track monster kill counts.
-#   - Provide access to loaded item data.
+#   - Provide access to loaded item data and quests
 #   - Integrate with the quest system (load quests, update quests).
 #   - Add quest-related methods (start_quest, complete_quest).
 #   - Handle dialogue actions.
-#  - Switch to combat and back
+#  - Switch to combat and back and dialogue
 
 # Interactions:
 #   - app.py: The App class creates the Game instance.
@@ -35,9 +35,9 @@
 #   - input_handler.py: Receives processed input events.
 #   - App: Gets the kivy app instance.
 #   - skills.py:  (Indirectly) Through Player and Combat
-#   - quests.py: Loads quest data.
-#   - data/items.json: Loads item data.
-#   - data/quests.json: Loads in quest information.
+# - quests.py: Loads quest data.
+# - data/items.json: Loads item data.
+# - data/quests.json: Loads in quest information.
 
 from player import Player
 from world import World
@@ -48,7 +48,7 @@ from utils import load_json_data
 
 class Game:
     def __init__(self):
-        self.player = Player(name="Hero", x=5, y=5, character_class="warrior")  # Initial position
+        self.player = Player(name="Hero", x=2, y=2, character_class="warrior")  # Initial position
         self.world = World()
         self.is_running = True
         self.current_npc = None  # Track the NPC we are interacting with.

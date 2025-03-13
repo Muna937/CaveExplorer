@@ -28,9 +28,9 @@ BROWN = (139, 69, 19)  # SaddleBrown
 # --- Screen Setup ---
 screen = pygame.display.set_mode((SCREEN_WIDTH , SCREEN_HEIGHT))
 pygame.display.set_caption("Dungeon Crawler")
-image_path = resource_path("images/town.png") # Use resource_path
+image_path = resource_path("CaveExplorer4/images/town.png") # Use resource_path
 town_bg_image = pygame.image.load(image_path)
-image_path = resource_path("images/tavern.png") # Use resource_path
+image_path = resource_path("CaveExplorer4/images/tavern.png") # Use resource_path
 tavern_bg_image = pygame.image.load(image_path)
 # --- Fonts ---
 TITLE_FONT = pygame.font.Font("freesansbold.ttf", 64)
@@ -1381,7 +1381,7 @@ monster_data = {
         "accuracy": 65,
         "evasion": 20,
         "monster_type": "Greenskin",
-        "image_path": "images/Goblin.png",
+        "image_path": "CaveExplorer4/images/Goblin.png",
         "attack_sound_path": "sounds/goblin_attack.wav",
         "abilities": ["Goblin Abilities"]
     },
@@ -1398,9 +1398,9 @@ monster_data = {
         "accuracy": 75,
         "evasion": 30,
         "monster_type": "Beast",
-        "image_path": "images/rat.png",
+        "image_path": "CaveExplorer4/images/rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
-        "abilities": []
+        "abilities": ["Rat Abilities"]
     },
     "Big Rat": {
         "name": "Big Rat",
@@ -1415,9 +1415,9 @@ monster_data = {
         "accuracy": 70,
         "evasion": 27,
         "monster_type": "Beast",
-        "image_path": "images/bigrat.png",
+        "image_path": "CaveExplorer4/images/bigrat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
-        "abilities": []
+        "abilities": ["Big Rat Abilities"]
     },
     "Spider": {
         "name": "Spider",
@@ -1432,9 +1432,9 @@ monster_data = {
         "accuracy": 70,
         "evasion": 45,
         "monster_type": "Beast",
-        "image_path": "images/spider.png",
+        "image_path": "CaveExplorer4/images/spider.png",
         "attack_sound_path": "sounds/spider_attack.wav",
-        "abilities": []
+        "abilities": ["Spider Abilities"]
     },
     "Skeleton Warrior": {
         "name": "Skeleton Warrior",
@@ -1449,9 +1449,9 @@ monster_data = {
         "accuracy": 80,
         "evasion": 15,
         "monster_type": "Undead",
-        "image_path": "images/skeleton_warrior.png",
+        "image_path": "CaveExplorer4/images/skeleton_warrior.png",
         "attack_sound_path": "sounds/skeleton_attack.wav",
-        "abilities": []
+        "abilities": ["Skeleton Warrior Abilities"]
     },
     "Giant Rat": {
         "name": "Giant Rat",
@@ -1466,9 +1466,9 @@ monster_data = {
         "accuracy": 80,
         "evasion": 30,
         "monster_type": "Beast",
-        "image_path": "images/giant_rat.png",
+        "image_path": "CaveExplorer4/images/giant_rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
-        "abilities": []
+        "abilities": ["Giant Rat Abilities"]
     },
     "Siren": {
         "name": "Siren",
@@ -1483,9 +1483,9 @@ monster_data = {
         "accuracy": 90,
         "evasion": 35,
         "monster_type": "Fey",
-        "image_path": "images/siren.png",
+        "image_path": "CaveExplorer4/images/siren.png",
         "attack_sound_path": "sounds/siren_attack.wav",
-        "abilities": []
+        "abilities": ["Siren Abilities"]
     },
     "Mimic": {
         "name": "Mimic",
@@ -1500,9 +1500,9 @@ monster_data = {
         "accuracy": 75,
         "evasion": 20,
         "monster_type": "Construct",
-        "image_path": "images/mimic.png",
+        "image_path": "CaveExplorer4/images/mimic.png",
         "attack_sound_path": "sounds/mimic_attack.wav",
-        "abilities": []
+        "abilities": ["Mimic Abilities"]
     },
     "Orc": {
         "name": "Orc",
@@ -1517,7 +1517,7 @@ monster_data = {
         "accuracy": 85,
         "evasion": 15,
         "monster_type": "Greenskin",
-        "image_path": "images/orc.png",
+        "image_path": "CaveExplorer4/images/orc.png",
         "attack_sound_path": "sounds/orc_attack.wav",
         "abilities": ["Orc Abilities"]
     },
@@ -1534,9 +1534,9 @@ monster_data = {
         "accuracy": 85,
         "evasion": 45,
         "monster_type": "Fiend",
-        "image_path": "images/succubus.png",
+        "image_path": "CaveExplorer4/images/succubus.png",
         "attack_sound_path": "sounds/succubus_charm.wav",
-        "abilities": []
+        "abilities": ["Succubus Abilities"]
     },
     "Lich": {
         "name": "Lich",
@@ -1551,9 +1551,9 @@ monster_data = {
         "accuracy": 95,
         "evasion": 20,
         "monster_type": "Undead",
-        "image_path": "images/lich.png",
+        "image_path": "CaveExplorer4/images/lich.png",
         "attack_sound_path": "sounds/lich_attack.wav",
-        "abilities": []
+        "abilities": ["Lich Abilities"]
     },
     "Dragon": {
         "name": "Dragon",
@@ -1568,9 +1568,9 @@ monster_data = {
         "accuracy": 95,
         "evasion": 35,
         "monster_type": "Dragon",
-        "image_path": "images/dragon.png",
+        "image_path": "CaveExplorer4/images/dragon.png",
         "attack_sound_path": "sounds/dragon_roar.wav",
-        "abilities": []
+        "abilities": ["Dragon Abilities"]
     }
 }
 MONSTER_ABILITIES = {

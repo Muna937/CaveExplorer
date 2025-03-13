@@ -8,6 +8,7 @@
 #   - Determine when combat ends (all enemies defeated, player defeated).
 #   - (Optionally) Integrate with a separate combat screen (combat_screen.py).
 #   - (Optionally) Handle AI for monsters.
+#   - Provide a get_log method
 
 # Interactions:
 #   - game.py:  Initiates combat encounters.
@@ -22,7 +23,8 @@
 # -  utils.py: For calculations
 #  - constants.py for constants
 
-from utils import roll_dice # Example utility function
+from utils import roll_dice 
+import random
 
 class Combat:
     def __init__(self, player, enemies):
@@ -117,4 +119,6 @@ class Combat:
         #Handle game over.
 
     def get_log(self):
-      return "\\n".join(self.log)
+      result = "\\n".join(self.log)
+      self.log = [] #clear log
+      return result

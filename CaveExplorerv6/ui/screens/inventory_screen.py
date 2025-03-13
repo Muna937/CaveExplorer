@@ -1,4 +1,21 @@
 # ui/screens/inventory_screen.py
+
+# Goals:
+#   - Display the player's inventory and equipped items.
+#   - Allow the player to select items in their inventory.
+#   - Provide buttons for using/equipping and dropping items.
+#   - Update the display when items are added, removed, or equipped.
+#   - Use the custom InventorySlot widget.
+
+# Interactions:
+#   - app.py: Added to the ScreenManager.
+#   - game.py: Gets the player's inventory data and equipped items via App.game_instance.
+#   - player.py: Calls player.inventory methods (add_item, remove_item, equip_item, unequip_item).
+#   - ui/widgets/inventory_slot.py: Uses InventorySlot widgets to display items.
+#   - item.py:  Uses item data (name, description, type) for display and actions.
+#   - kivy: Uses kivy for UI.
+#   - utils.py: No direct interactions, but indirectly uses data loaded by utils.py.
+
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.uix.button import Button
@@ -6,7 +23,8 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.boxlayout import BoxLayout
 from kivy.clock import Clock
-from kivy.app import App  # Import the App class
+from kivy.app import App
+from ui.widgets.inventory_slot import InventorySlot  # Import InventorySlot
 
 
 class InventoryScreen(Screen):
@@ -15,10 +33,18 @@ class InventoryScreen(Screen):
 
         self.layout = BoxLayout(orientation='vertical')
 
+        # --- Equipped Items ---
+        self.equipped_layout = GridLayout(cols=2, size_hint_y=None, height=80)
+        self.equipped_weapon_label = Label(text="Weapon: None")
+        self.equipped_armor_label = Label(text="Armor: None")
+        self.equipped_layout.add_widget(self.equipped_weapon_label)
+        self.equipped_layout.add_widget(self.equipped_armor_label)
+        self.layout.add_widget(self.equipped_layout)
+
         # --- Inventory Grid (inside a ScrollView) ---
         self.scrollview = ScrollView()
         self.inventory_grid = GridLayout(cols=4, size_hint_y=None)
-        self.inventory_grid.bind(minimum_height=self.inventory_grid.setter('height')) #for scrolling
+        self.inventory_grid.bind(minimum_height=self.inventory_grid.setter('height'))
         self.scrollview.add_widget(self.inventory_grid)
         self.layout.add_widget(self.scrollview)
 
@@ -28,11 +54,11 @@ class InventoryScreen(Screen):
 
         # --- Buttons ---
         self.button_layout = BoxLayout(orientation='horizontal', size_hint_y=None, height=40)
-        self.use_button = Button(text="Use", size_hint_x = 0.3, disabled = True)
-        self.use_button.bind(on_press=self.use_item)
-        self.drop_button = Button(text="Drop", size_hint_x = 0.3, disabled = True)
+        self.use_button = Button(text="Use/Equip", size_hint_x=0.3, disabled=True)  # Combined button
+        self.use_button.bind(on_press=self.use_equip_item)
+        self.drop_button = Button(text="Drop", size_hint_x=0.3, disabled=True)
         self.drop_button.bind(on_press=self.drop_item)
-        self.close_button = Button(text="Close", size_hint_x = 0.3)
+        self.close_button = Button(text="Close", size_hint_x=0.3)
         self.close_button.bind(on_press=self.close_inventory)
         self.button_layout.add_widget(self.use_button)
         self.button_layout.add_widget(self.drop_button)
@@ -42,71 +68,97 @@ class InventoryScreen(Screen):
 
         self.add_widget(self.layout)
         Clock.schedule_interval(self.update, 1.0 / 60.0)
-        self.selected_item = None  # Store the currently selected item.
-        self.game = None #initizlize game
-
-
+        self.selected_slot = None
+        self.inventory_slots = []  # Keep track of InventorySlot widgets
+        self.game = None #init
 
     def on_enter(self):
-      self.game = App.get_running_app().game_instance  # Access via App
-      self.refresh_inventory()
+        self.game = App.get_running_app().game_instance #correct way to get game instance
+        self.refresh_inventory()
+
 
     def update(self, dt):
-      pass
+        if self.game and self.game.player:
+          #Update the equipped item labels
+          if self.game.player.equipped_weapon:
+              self.equipped_weapon_label.text = f"Weapon: {self.game.player.equipped_weapon.name}"
+          else:
+              self.equipped_weapon_label.text = "Weapon: None"
+
+          if self.game.player.equipped_armor:
+              self.equipped_armor_label.text = f"Armor: {self.game.player.equipped_armor.name}"
+          else:
+              self.equipped_armor_label.text = "Armor: None"
+
 
     def refresh_inventory(self):
-        # Clear existing items
-        self.inventory_grid.clear_widgets()
-        self.selected_item = None
-        self.use_button.disabled = True
-        self.drop_button.disabled = True
-        self.item_info_label.text = "Item Info"
+      self.inventory_grid.clear_widgets()
+      self.selected_slot = None
+      self.use_button.disabled = True
+      self.use_button.text = "Use/Equip" #reset
+      self.drop_button.disabled = True
+      self.item_info_label.text = "Item Info"
+      self.inventory_slots = []
 
-        # Add items from the player's inventory
-        if self.game and self.game.player:  # Check if game and player exist
-            for item_data in self.game.player.inventory.get_items():
-                # Create a button for each item
-                item_button = Button(text=item_data["name"])
-                item_button.bind(on_press=lambda instance, item=item_data: self.select_item(item))
-                self.inventory_grid.add_widget(item_button)
+      if self.game and self.game.player:
+          # Use InventorySlots instead of Buttons
+          for i, item in enumerate(self.game.player.inventory.items):
+              slot = InventorySlot()
+              slot.update_slot(item)
+              slot.slot_index = i  # Set the slot index
+              slot.on_slot_pressed = self.select_item  # Set the callback
+              self.inventory_grid.add_widget(slot)
+              self.inventory_slots.append(slot)
 
-    def select_item(self, item_data):
+          # Add empty slots to fill the capacity
+          for i in range(len(self.game.player.inventory.items), self.game.player.inventory.capacity):
+            slot = InventorySlot()
+            slot.slot_index = i
+            slot.on_slot_pressed = self.select_item
+            self.inventory_grid.add_widget(slot)
+            self.inventory_slots.append(slot)
+
+    def select_item(self, slot_index):
         # Handle item selection (display info, enable buttons)
-        self.selected_item = item_data
-        self.item_info_label.text = f"Name: {item_data['name']}\\nDescription: {item_data['description']}"  # Show name and description
-        #Enable buttons based on context
-        self.use_button.disabled = False
-        self.drop_button.disabled = False
+        if slot_index < len(self.game.player.inventory.items):
+            self.selected_slot = slot_index
+            item = self.game.player.inventory.items[slot_index]
+            self.item_info_label.text = f"Name: {item.name}\nDescription: {item.description}"
+            self.use_button.disabled = False
+            self.drop_button.disabled = False
 
-        if item_data['type'] != "consumable":
-            self.use_button.disabled = True # Disable the use button for non consumables
-            self.use_button.text = "Use"
+            if item.item_type == "consumable":
+              self.use_button.text = "Use"
+            elif item.item_type == "weapon" or item.item_type == "armor":
+                self.use_button.text = "Equip"
+            else:
+              self.use_button.text = "Use/Equip" #shouldn't happen, but just in case
         else:
-          self.use_button.text = "Use"
+          # Clicked an empty slot
+          self.selected_slot = None
+          self.item_info_label.text = "Item Info"
+          self.use_button.disabled = True
+          self.drop_button.disabled = True
 
+    def use_equip_item(self, instance):
+      if self.selected_slot is not None and self.game and self.game.player:
+          item = self.game.player.inventory.items[self.selected_slot]
+          if item.item_type == "consumable":
+              item.use(self.game.player)  # Use the item
+              if item.quantity <= 0: #remove if empty
+                self.game.player.remove_from_inventory(item)
+              self.refresh_inventory()
 
-
-    def use_item(self, instance):
-      if self.selected_item and self.game and self.game.player:
-          # Handle using the item (e.g., consume potion, equip weapon)
-          print("Using item:", self.selected_item["name"])
-          if self.selected_item['type'] == "consumable":
-            if "hp" in self.selected_item['effect']:
-              self.game.player.health += self.selected_item['effect']['hp']
-              if self.game.player.health > self.game.player.max_health:
-                self.game.player.health = self.game.player.max_health
-            elif "mp" in self.selected_item['effect']:
-              pass #Handle mana
-            self.game.player.remove_from_inventory(self.selected_item) #Remove from inventory.
-            self.refresh_inventory() #Refresh UI
-
+          elif item.item_type == "weapon" or item.item_type == "armor":
+            self.game.player.equip_item(self.selected_slot)
+            self.refresh_inventory()
+            self.update(0) #update equip display
 
     def drop_item(self, instance):
-        # Handle dropping the item
-        if self.selected_item and self.game and self.game.player:
-          print("Dropping item", self.selected_item['name'])
-          self.game.player.remove_from_inventory(self.selected_item)
-          self.refresh_inventory()
+        if self.selected_slot is not None and self.game and self.game.player:
+            item = self.game.player.inventory.items[self.selected_slot]
+            self.game.player.remove_from_inventory(item)
+            self.refresh_inventory()
 
     def close_inventory(self, instance):
-        self.manager.current = "game"  # Go back to the game screen
+        self.manager.current = "game"

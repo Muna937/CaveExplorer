@@ -1,23 +1,25 @@
 # ui/screens/combat_screen.py
 
 # Goals:
-#   - Display the combat interface (if separate from game_screen.py).
+#   - Display the combat interface.
 #   - Show combatants (player and enemies), their health, and other relevant stats.
 #   - Provide controls for player actions (attack, use skills, use items, flee).
 #   - Display combat messages (damage dealt, status effects, etc.).
-#   - Handle turn order and transitions between turns.
+#   - Handle turn order and transitions between turns (visually).
+#   - Get combat information from the Combat instance.
+#   - Send player actions to the Combat instance.
 
 # Interactions:
 #   - app.py: Added to the ScreenManager.
-#   - game.py: Receives combat information (combatants, turn order, etc.).
-#                Sends player actions to the combat system.
-#   - combat.py:  Gets updates from the combat system.
+#   - game.py:  Gets the Combat instance when combat starts.
+#   - combat.py:  Gets updates from the combat system (turn, health, log).
 #   - player.py:  Gets player information (health, skills, etc.).
-#   - entity.py (or monster.py): Gets enemy information.
+#   - entity.py: Gets entity information.
+#   - monster.py: Gets enemy information.
 #   - skills.py:  If skills are used in combat, displays available skills.
 #   - inventory.py (potentially):  If items can be used in combat.
 #   - ui/widgets/: Might use custom widgets (e.g., health bars, action buttons).
-#   - kivy: Uses Kivy for UI.
+#   - kivy: Uses Kivy for UI
 
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
@@ -25,6 +27,8 @@ from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.clock import Clock
+from kivy.app import App  # Import App
+
 
 class CombatScreen(Screen):
     def __init__(self, **kwargs):
@@ -57,7 +61,7 @@ class CombatScreen(Screen):
         self.layout.add_widget(self.actions_layout)
 
         # --- Combat Log (Example: Simple label) ---
-        self.log_label = Label(text="Combat Log", size_hint_y=None, height=100)
+        self.log_label = Label(text="Combat Log", size_hint_y=None, height=100, markup=True) #Added markup
         self.layout.add_widget(self.log_label)
 
         # --- Back Button (for testing - you'd normally exit combat differently) ---
@@ -67,59 +71,47 @@ class CombatScreen(Screen):
         self.add_widget(self.layout)
 
         Clock.schedule_interval(self.update, 1.0 / 60.0)
+        self.combat = None #Keep track of combat instance
 
 
     def on_enter(self):
         # Initialize combat (get combat instance from game.py).
-        self.game = self.manager.parent.game_instance
-        #  self.combat = self.game.current_combat  # Assuming game.py has a current_combat attribute
-        #  self.update_combat_info()
-        pass
+        self.game = App.get_running_app().game_instance
+        self.combat = self.game.combat  # Get combat instance
+        self.update_combat_info()
+
 
 
     def update(self, dt):
         # Update combat information (health bars, combat log, etc.).
-        # You'd get this information from the Combat instance.
-        # Example (replace with actual data from your combat system):
-      #   if self.combat:
-      #     self.player_label.text = f"Player HP: {self.combat.player.health}"  # Assuming Combat has player and enemy
-      #     self.enemy_label.text = f"Enemy HP: {self.combat.enemy.health}"
-      #     self.log_label.text += self.combat.get_log_messages() #get log messages from combat
-      pass
+        if self.combat:
+            self.combat.update(dt)  # *Crucially* update the Combat instance
+            self.update_combat_info()  # Update UI
+            if not self.combat.player.is_alive:
+              #Game over screen if player is dead
+              self.game.show_game_screen() #go back to game, will add game over later
+            if self.combat.is_combat_over:
+              self.game.show_game_screen() #go back to game.
+
+    def update_combat_info(self):
+      # Update combat information (health bars, combat log, etc.).
+      if self.combat:
+        self.player_label.text = f"Player HP: {self.combat.player.health} / {self.combat.player.max_health}"
+        if self.combat.enemies: #Make sure enemy exists
+          self.enemy_label.text = f"Enemy HP: {self.combat.enemies[0].health} / {self.combat.enemies[0].max_health}" #get first enemy
+        self.log_label.text = self.combat.get_log()
 
     def player_attack(self, instance):
         # Handle the player's attack action.
-        # Example:
-        # if self.combat:
-        #     self.combat.player_turn("attack") # Tell combat its the players turn
-        pass
+        if self.combat and self.combat.current_turn_index == 0 : #player turn
+            # For now, assume the target is the first enemy.  Later, you'll need
+            # a way for the player to select a target.
+            target = self.combat.enemies[0] if self.combat.enemies else None #get first enemy
+            if target:
+              self.combat.player_turn("attack", target)
+            #self.update_combat_info() #Update after every action
 
     # ... other methods for handling skills, items, fleeing ...
 
     def go_back(self, instance):
-        self.manager.current = "game"
-
-# --- Temporary Example Data (for testing) ---
-class TempEntity:
-  def __init__(self, name, health):
-    self.name = name
-    self.health = health
-
-class TempCombat:
-  def __init__(self, player, enemy):
-    self.player = player
-    self.enemy = enemy
-    self.log = []
-
-  def player_turn(self, action):
-    if action == "attack":
-      damage = 10 #random damage
-      self.enemy.health -= damage
-      self.log.append(f'Player attacks, dealing {damage}')
-      if self.enemy.health <=0:
-        self.log.append("Enemy defeated!")
-
-  def get_log_messages(self):
-    result = "\\n".join(self.log)
-    self.log = [] #clear log
-    return result
+      self.manager.current = "game"

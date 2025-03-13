@@ -3,15 +3,17 @@
 # Goals:
 #   - Load and manage the game world (map data).
 #   - Create and manage Tile objects based on map data.
-#   - Create and manage NPC, Monster, and Item instances on the map.
+#   - Create and manage NPC, Monster, and Item instances on the map, based on map data.
 #   - Handle collision detection (using Tile.walkable).
-#   - Manage map transitions (loading different maps).
-#   - (Optionally) Manage dynamic map elements.
+#   - Manage map transitions (loading different maps).  Currently loads initial map.
+#   - Update the state of dynamic elements on the map (NPCs, monsters).  Calls their update() methods.
+#   - Provide is_tile_walkable() for collision checks.
 
 # Interactions:
 #   - game.py:
 #       - Game.update() calls World.update().
 #       - Game gets information about the map (tiles, NPCs, monsters, items) from World.
+#       - Game calls check_move() which uses is_tile_walkable().
 #   - data/maps/: Loads map data from JSON files.
 #   - tile.py: Creates Tile instances.
 #   - npc.py: Creates NPC instances.
@@ -19,8 +21,9 @@
 #   - item.py: Creates Item instances.
 #   - ui/screens/game_screen.py: Renders the map, NPCs, monsters, and items (using data provided by World).
 #   - utils.py: Uses utility functions (e.g., for loading JSON data).
-#   - player.py: Used for collision detection.
-#   - save_load.py:  Will need to handle saving/loading the *state* of NPCs, monsters, and items on the map (their positions, HP, etc.).  This is more complex than just saving the initial placement.
+#   - player.py: Used for collision detection (indirectly, via game.py).
+#   - save_load.py:  Will need to handle saving/loading the *state* of NPCs, monsters, and items on the map.
+#   - combat.py: (Indirectly) For monster placement and AI.
 
 from tile import Tile
 from npc import NPC
@@ -35,17 +38,17 @@ class World:
         self.current_map_name = "town"  # Example: Start in the "town" map.
         self.tile_size = 32
         self.tiles = []  # Store Tile objects
-        self.npcs = {}  # Store NPC instances {npc_id: NPC object}
+        self.npcs = {}     # Store NPC instances {npc_id: NPC object}
         self.monsters = []  # Store Monster instances
         self.items = [] # Store Item instances
-        self.load_map(self.current_map_name)
+        self.load_map(self.current_map_name) # Load initial map
 
     def load_map(self, map_name):
         map_filepath = os.path.join("data", "maps", f"{map_name}.json")
         self.map_data, error_message = load_json_data(map_filepath)
-        if error_message:  # Check for error message
+        if error_message:
             print(error_message)
-            return False, error_message # Return immediately if there's an error
+            return False, error_message
 
         # --- Tile Creation ---
         self.tiles = []  # Clear previous tiles
@@ -88,7 +91,7 @@ class World:
 
 
         # --- Monster Creation ---
-        self.monsters = []  # Clear existing
+        self.monsters = []  # Clear existing instances
         if "monsters" in self.map_data:
           monsters_data, msg = load_json_data("data/monsters.json")
           if monsters_data:
@@ -194,6 +197,7 @@ class World:
                     item.x = item_spawn["x"]
                     item.y = item_spawn["y"]
                     self.items.append(item)
+
                 else:
                   print(f"Item type not found in items.json {item_type}") #error handle
           else:
@@ -210,15 +214,19 @@ class World:
     def is_tile_walkable(self, x, y):
         tile_x = int(x // self.tile_size)
         tile_y = int(y // self.tile_size)
+        if not self.map_data: # ADD THIS CHECK!
+            return False
         if 0 <= tile_y < len(self.tiles) and 0 <= tile_x < len(self.tiles[0]):
             return self.tiles[tile_y][tile_x].walkable
         else:
             return False
+
     def change_map(self, map_name):
       success, message = self.load_map(map_name)
       if success:
         self.current_map_name = map_name
       return success, message
+
 
     def render(self, screen): #Placeholder
       pass

@@ -5,11 +5,13 @@
 #   - Interact with the Game instance to update the game state and retrieve data.
 #   - Provide a user interface for interacting with the game world (menus).
 #   - Render tiles using the Tile objects and their image_path attributes.
+#     - Use a GridLayout (tile_layer) within a RelativeLayout for tiles.
 #   - Render NPCs, monsters, and items on top of the map.
-#   - Use a RelativeLayout for correct Z-ordering and absolute positioning.
+#     - Use a dedicated RelativeLayout (entity_layer) for entities and items.
 #   - Handle NO input; input is handled by InputHandler and game.py.
 #   - Render the initial map only once, on_enter.
 #   - Update the positions of entities (player, NPCs, monsters, items) every frame.
+#   - Create player image in __init__ and add to entity_layer.
 
 # Interactions:
 #   - app.py: Added to the ScreenManager by app.py. Receives the Game instance.
@@ -21,21 +23,21 @@
 #   - monster.py: Gets Monster data (including sprite paths) for rendering.
 #   - item.py: Gets item data (including icon paths) for rendering.
 #   - ui/widgets/: May use custom widgets for UI elements (buttons here).
-#   - kivy.uix.relativelayout.RelativeLayout:  Uses RelativeLayout for positioning.
+#   - kivy.uix.relativelayout.RelativeLayout:  Uses RelativeLayout for overall map view and entity layer.
+#   - kivy.uix.gridlayout.GridLayout: Uses GridLayout for the tile layer.
 #   - kivy.uix.image.Image: Uses Image widgets to display tiles, player, NPCs, etc.
 #   - kivy.uix.boxlayout.BoxLayout: Uses BoxLayout for overall screen layout and button bar.
 #   - kivy.uix.button.Button: Uses Buttons for UI actions.
 #   - ui/screens/inventory_screen.py:  Can switch to the inventory screen.
 #   - ui/screens/character_screen.py: Can switch to the character screen.
-#  - App: Uses App to change screens
+#   - App: Uses App to switch screens.
 
-# ui/screens/game_screen.py
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.relativelayout import RelativeLayout 
-from kivy.uix.gridlayout import GridLayout # Use RelativeLayout
+from kivy.uix.relativelayout import RelativeLayout  # Use RelativeLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.image import Image
 from kivy.clock import Clock
 from kivy.core.window import Window

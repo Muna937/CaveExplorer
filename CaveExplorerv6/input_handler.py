@@ -15,10 +15,11 @@
 #   - ui/screens/game_screen.py: No longer handles input directly.
 #   - Kivy Framework: Receives input events from kivy.core.window.Window.
 
+# input_handler.py
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 
-class InputHandler(Widget): #Inherit from Widget
+class InputHandler(Widget):  # Inherit from Widget
     def __init__(self, game, **kwargs):
         super().__init__(**kwargs)
         self.game = game
@@ -32,9 +33,9 @@ class InputHandler(Widget): #Inherit from Widget
     def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
         # Map key presses to game actions
         if keycode[1] == 'w':
-            self.game.check_move(0, -1)  # Call methods on the Game instance
+            self.game.check_move(0, 1)  # Call methods on the Game instance
         elif keycode[1] == 's':
-            self.game.check_move(0, 1)
+            self.game.check_move(0, -1)
         elif keycode[1] == 'a':
             self.game.check_move(-1, 0)
         elif keycode[1] == 'd':
@@ -42,11 +43,11 @@ class InputHandler(Widget): #Inherit from Widget
         elif keycode[1] == 'e':
             self.game.handle_interaction()
         elif keycode[1] == 'i':
-            self.game.open_inventory() # Example
+            self.game.open_inventory()  # Call the new methods
+        elif keycode[1] == 'c':
+            self.game.open_character_screen()
         elif keycode[1] == 'q':
             self.game.quit_game()
-        elif keycode[1] == 'c': #Character Screen
-            self.game.open_character_screen()
         # ... add more key bindings ...
 
-        return True
+        return True  # Consume the key event

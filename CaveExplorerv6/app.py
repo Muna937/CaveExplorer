@@ -5,7 +5,7 @@
 #   - Screen Management: Set up a ScreenManager to handle different screens.
 #   - Game Instance Creation: Create a single instance of the Game class.
 #   - Input Handler Initialization: Create an instance of InputHandler and pass in the game instance.
-#   - Pass Game Instance: Pass the Game instance to relevant screens (where needed).
+#   - Initial Map Load: Ensure the initial map is loaded *before* creating the GameScreen.
 #   - Import and add all screens.
 
 # Interactions:
@@ -37,11 +37,13 @@ from ui.screens.game_over_screen import GameOverScreen
 from game import Game
 from input_handler import InputHandler  # Import InputHandler
 
+
 class GameApp(App):
     def build(self):
         self.sm = ScreenManager()
-        self.game_instance = Game()
-        self.input_handler = InputHandler(self.game_instance)  # Create and pass game instance
+        self.game_instance = Game()  # Create the Game instance *first*
+        self.game_instance.load_initial_map()  # Load initial map *before* screens
+        self.input_handler = InputHandler(self.game_instance)  # Create InputHandler, pass Game
         self.sm.add_widget(MainMenuScreen(name='main_menu'))
         self.sm.add_widget(GameScreen(name='game', game=self.game_instance))  # Pass game
         self.sm.add_widget(InventoryScreen(name='inventory'))

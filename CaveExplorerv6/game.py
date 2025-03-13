@@ -39,6 +39,7 @@
 # - data/items.json: Loads item data.
 # - data/quests.json: Loads in quest information.
 
+# game.py
 from player import Player
 from world import World
 from kivy.app import App  # For getting the ScreenManager
@@ -48,7 +49,7 @@ from utils import load_json_data
 
 class Game:
     def __init__(self):
-        self.player = Player(name="Hero", x=2, y=2, character_class="warrior")  # Initial position
+        self.player = Player(name="Hero", x=5, y=5, character_class="warrior")  # Initial position
         self.world = World()
         self.is_running = True
         self.current_npc = None  # Track the NPC we are interacting with.
@@ -221,3 +222,7 @@ class Game:
       if monster_id not in self.kill_counts:
         self.kill_counts[monster_id] = 0
       self.kill_counts[monster_id] += 1
+
+    def load_initial_map(self):
+        #Add in map loading to ensure map is loaded before game screen is created.
+        self.world.load_map(self.world.current_map_name)

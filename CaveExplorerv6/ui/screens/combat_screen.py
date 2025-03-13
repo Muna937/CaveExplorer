@@ -19,7 +19,7 @@
 #   - skills.py:  If skills are used in combat, displays available skills.
 #   - inventory.py (potentially):  If items can be used in combat.
 #   - ui/widgets/: Might use custom widgets (e.g., health bars, action buttons).
-#   - kivy: Uses Kivy for UI
+#   - kivy: Uses Kivy for UI.
 
 from kivy.uix.screenmanager import Screen
 from kivy.uix.label import Label
@@ -72,13 +72,19 @@ class CombatScreen(Screen):
 
         Clock.schedule_interval(self.update, 1.0 / 60.0)
         self.combat = None #Keep track of combat instance
+        self.game = None
 
 
     def on_enter(self):
         # Initialize combat (get combat instance from game.py).
-        self.game = App.get_running_app().game_instance
-        self.combat = self.game.combat  # Get combat instance
-        self.update_combat_info()
+        app = App.get_running_app()
+        if app:
+          self.game = app.game_instance
+          self.combat = self.game.combat  # Get combat instance
+          self.update_combat_info()
+        else:
+          print("ERROR: app not defined")
+          self.go_back() #go back if app doesn't exist
 
 
 

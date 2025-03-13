@@ -15,13 +15,21 @@
 
 # --- Basic Utility Functions (Could be in utils.py, but here for now) ---
 
+# ai.py
 def distance(x1, y1, x2, y2):
     """Calculates the Euclidean distance between two points."""
     return ((x2 - x1)**2 + (y2 - y1)**2)**0.5
 
 # --- AI Functions ---
 
-def basic_melee_ai(monster, game):
+# ai.py
+def distance(x1, y1, x2, y2):
+    """Calculates the Euclidean distance between two points."""
+    return ((x2 - x1)**2 + (y2 - y1)**2)**0.5
+
+# --- AI Functions ---
+
+def basic_melee_ai(monster, game, combat, dt):  # Add 'game' parameter
     """Simple melee AI: Move towards the player and attack if in range."""
     if not game.player.is_alive: #don't do anything if player is dead.
       return
@@ -31,11 +39,8 @@ def basic_melee_ai(monster, game):
     dist = distance(monster.x, monster.y, player_x, player_y)
 
     if dist <= 1:  # Assuming 1 tile is melee range
-        # Attack the player (you'd call a combat function here)
-        print(f"{monster.name} attacks the player!") # Placeholder
-        # game.start_combat()  # Or something similar
-    elif dist <= 5:  # Move towards the player if within a certain range
-        # Basic movement (replace with pathfinding for more complex AI)
+        combat.monster_turn(monster)  # Attack the player
+    elif dist <= 5:
         dx = 0
         dy = 0
         if player_x > monster.x:
@@ -46,15 +51,11 @@ def basic_melee_ai(monster, game):
             dy = 1
         elif player_y < monster.y:
             dy = -1
-
-        #Check for collisions before moving.
+          #Check for collisions before moving.
         if game.world.is_tile_walkable((monster.x + dx) * game.world.tile_size, (monster.y + dy) * game.world.tile_size):
-          monster.move(dx, dy)
-    else:
-      #Idle or patrol
-      pass
+            monster.move(dx, dy)
 
-def ranged_fire_ai(monster, game):
+def ranged_fire_ai(monster, game, combat, dt):  # Add 'game' parameter
     """Ranged AI: Stay at a distance and attack."""
     if not game.player.is_alive:
       return
@@ -63,9 +64,7 @@ def ranged_fire_ai(monster, game):
     dist = distance(monster.x, monster.y, player_x, player_y)
 
     if 2 <= dist <= 5 :  # Example: Attack if within range 2-5
-        # Attack the player (you'd call a combat function here)
-        print(f"{monster.name} attacks the player from range!")  # Placeholder
-        # game.start_combat()  # Or something similar, perhaps a ranged attack function
+        combat.monster_turn(monster)
     elif dist < 2:
       #move away
       dx = 0
@@ -96,18 +95,11 @@ def ranged_fire_ai(monster, game):
          #Check for collisions before moving.
         if game.world.is_tile_walkable((monster.x + dx) * game.world.tile_size, (monster.y + dy) * game.world.tile_size):
           monster.move(dx, dy)
-    else:
-      #Idle
-      pass
 
-def update_ai(monster, game, dt):
+def update_ai(monster, game, combat, dt):
   #Update the ai
   if monster.ai == "basic_melee":
-    basic_melee_ai(monster, game)
+    basic_melee_ai(monster, game, combat, dt)
   elif monster.ai == "ranged_fire":
-    ranged_fire_ai(monster, game)
-# --- Example Usage (in monster.py or game.py) ---
-# In monster.py's Monster.update() method:
-#    ai.update_ai(self, game, dt)
-
+    ranged_fire_ai(monster, game, combat, dt)
 # --- Add more AI behaviors as needed ---

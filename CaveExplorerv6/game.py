@@ -1,4 +1,4 @@
-#game.py
+# game.py
 
 # Goals:
 #   - Initialize and manage the overall game state.
@@ -9,7 +9,7 @@
 #   - Manage player interactions with NPCs and the world (dialogue, combat).
 #   - Coordinate saving and loading of the game.
 #   - Track monster kill counts.
-#   - Provide access to loaded item data and quests
+#   - Provide access to loaded item data and quests.
 #   - Integrate with the quest system (load quests, update quests).
 #   - Add quest-related methods (start_quest, complete_quest).
 #   - Handle dialogue actions.
@@ -77,26 +77,31 @@ class Game:
           self.world.update(dt)   # Update world (NPCs, monsters, timed events)
           self.update_quests(dt) # Update quests
 
+          # --- NPC Interaction (Check for proximity) ---
+          self.current_npc = None  # Reset current_npc each frame
           for npc_id, npc in self.world.npcs.items():
-              if self.player.x == npc.x and self.player.y == npc.y:
+              if self.is_near(self.player, npc, 1):  # Check for adjacency (radius 1)
                   self.current_npc = npc
                   break
-          else:
-              self.current_npc = None
 
+          # --- Monster Interaction and Combat ---
           for monster in self.world.monsters:
               if self.player.x == monster.x and self.player.y == monster.y:
                   self.start_combat(monster) #start combat
-                  break
+                  break #ensure one combat at a time
 
+          # --- Item Pickup ---
           items_to_remove = []
           for item in self.world.items:
-              if self.player.x == item.x and self.player.y == item.y:
-                  if self.player.add_to_inventory(item):
-                    items_to_remove.append(item)
+             if self.is_near(self.player, item, 1): # Check for adjacency
+                if self.player.add_to_inventory(item):
+                  items_to_remove.append(item) #remove after loop
           for item in items_to_remove:
-              self.world.items.remove(item)
+            self.world.items.remove(item)
 
+    def is_near(self, entity1, entity2, radius):
+        distance = abs(entity1.x - entity2.x) + abs(entity1.y- entity2.y)
+        return distance <= radius
 
     def check_move(self, dx, dy):
         if self.player:
@@ -105,15 +110,13 @@ class Game:
             if self.world.is_tile_walkable(new_x * self.world.tile_size, new_y * self.world.tile_size):
                 self.player.move(dx, dy)
 
-
     def handle_interaction(self):
       if self.current_npc:
-        self.current_npc.interact(self.player, self) #now passing in game object
+        self.show_dialogue_screen()  # Correctly switch to the dialogue screen
 
     def start_dialogue(self, npc_id):
-        app = App.get_running_app()
-        if app and app.root:
-            app.root.get_screen('dialogue').start_dialogue(npc_id)
+      #now handled in show_dialogue_screen
+      pass
 
     def start_combat(self, monster):
         # self.combat_instance = Combat([self.player] + enemies_nearby)
@@ -136,6 +139,23 @@ class Game:
       if app and app.root:
         app.root.current = "game"
 
+    def show_dialogue_screen(self):
+        # Helper method to switch to the dialogue screen and start dialogue
+        app = App.get_running_app()
+        if app and app.root:
+            app.root.current = 'dialogue'
+            dialogue_screen = app.root.get_screen('dialogue')
+            if dialogue_screen and self.current_npc:
+                dialogue_screen.start_dialogue(self.current_npc.npc_id)
+            elif not dialogue_screen:
+                print("Error: Dialogue screen not found.")
+            else:
+                print("Error: No NPC selected for interaction.")
+        else:
+            print("Error: App not running or root not set.")
+
+    def load_initial_map(self):
+      self.world.load_map(self.world.current_map_name)
 
     def load_game(self):
         pass  # TODO
@@ -223,6 +243,15 @@ class Game:
         self.kill_counts[monster_id] = 0
       self.kill_counts[monster_id] += 1
 
-    def load_initial_map(self):
-        #Add in map loading to ensure map is loaded before game screen is created.
-        self.world.load_map(self.world.current_map_name)
+    def remove_monster(self, monster):
+        if monster in self.world.monsters:
+            self.world.monsters.remove(monster)
+            # Find and remove the monster's image from the GameScreen.
+            app = App.get_running_app()
+            if app and app.root:
+              game_screen = app.root.get_screen('game')
+              if game_screen:
+                if monster in game_screen.monster_images:
+                  monster_image = game_screen.monster_images[monster]
+                  game_screen.entity_layer.remove_widget(monster_image)
+                  del game_screen.monster_images[monster]

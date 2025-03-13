@@ -41,6 +41,7 @@ class InputHandler(Widget):  # Inherit from Widget
         elif keycode[1] == 'd':
             self.game.check_move(1, 0)
         elif keycode[1] == 'e':
+            print("E key pressed - calling handle_interaction")
             self.game.handle_interaction()
         elif keycode[1] == 'i':
             self.game.open_inventory()  # Call the new methods

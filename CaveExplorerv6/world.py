@@ -23,21 +23,21 @@
 #   - utils.py: Uses utility functions (e.g., for loading JSON data).
 #   - player.py: Used for collision detection (indirectly, via game.py).
 #   - save_load.py:  Will need to handle saving/loading the *state* of NPCs, monsters, and items on the map.
-#   - combat.py: (Indirectly) For monster placement and AI.
+# - combat.py
 
-# world.py (No changes needed from the *previous* corrected version)
 from tile import Tile
 from npc import NPC
 from monster import Monster
 from item import Item, Consumable, Weapon, Armor  # Import Item classes
 from utils import load_json_data
 import os
+from constants import *
 
 class World:
     def __init__(self):
         self.map_data = None
         self.current_map_name = "town"  # Example: Start in the "town" map.
-        self.tile_size = 32
+        self.tile_size = TILE_SIZE
         self.tiles = []  # Store Tile objects
         self.npcs = {}     # Store NPC instances {npc_id: NPC object}
         self.monsters = []  # Store Monster instances
@@ -56,14 +56,13 @@ class World:
         for row_index, row in enumerate(self.map_data["tiles"]):
             tile_row = []
             for col_index, tile_id in enumerate(row):
-                # Replace this with your actual tile mapping logic
+                # Tile Mapping Logic (ONLY WALLS AND FLOORS)
                 if tile_id == 0:
-                    tile = Tile(tile_id, walkable=False, image_path="assets/images/tiles/wall.png")  # Example
+                    tile = Tile(tile_id, walkable=False, image_path="assets/images/tiles/wall.png")
                 elif tile_id == 1:
-                    tile = Tile(tile_id, walkable=True, image_path="assets/images/tiles/floor.png")  # Example
-                # ... more tile types ...
-                else:
-                    tile = Tile(tile_id)  # default
+                    tile = Tile(tile_id, walkable=True, image_path="assets/images/tiles/floor.png")
+                else:  # Default to walkable floor (for now)
+                    tile = Tile(tile_id, walkable=True, image_path="assets/images/tiles/floor.png")
                 tile_row.append(tile)
             self.tiles.append(tile_row)
 
@@ -199,8 +198,8 @@ class World:
                     item.y = item_spawn["y"]
                     self.items.append(item)
 
-                else:
-                  print(f"Item type not found in items.json {item_type}") #error handle
+            else:
+              print(f"Item type not found in items.json {item_type}") #error handle
           else:
             print(msg) #error handle
         return True, ""
@@ -221,7 +220,6 @@ class World:
             return self.tiles[tile_y][tile_x].walkable
         else:
             return False
-
     def change_map(self, map_name):
       success, message = self.load_map(map_name)
       if success:

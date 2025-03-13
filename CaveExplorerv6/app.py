@@ -36,6 +36,7 @@ from ui.screens.shop_screen import ShopScreen
 from ui.screens.game_over_screen import GameOverScreen
 from game import Game
 from input_handler import InputHandler  # Import InputHandler
+import kivy
 
 
 class GameApp(App):
@@ -62,5 +63,6 @@ class GameApp(App):
         self.sm.add_widget(StatsScreen(name='stats'))
         self.sm.add_widget(ShopScreen(name='shop'))
         self.sm.add_widget(GameOverScreen(name='game_over'))
+        print(f"Kivy Version: {kivy.__version__}")  # Add this line
 
         return self.sm

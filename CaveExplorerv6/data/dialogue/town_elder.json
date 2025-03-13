@@ -1,50 +1,62 @@
 {
-    "start": "greeting",
-    "greeting": {
-      "text": "Welcome, traveler. Our village is beset by goblins. Will you help us?",
-      "choices": [
-        { "text": "Yes, I'll help.", "next": "accept_quest" },
-        { "text": "No, I'm too busy.", "next": "refuse_quest" }
-      ]
-    },
-    "accept_quest": {
-      "text": "Thank you, brave adventurer! Please defeat 5 goblins and bring me 3 healing herbs. I will reward you handsomely.",
-      "choices": [
-        { "text": "I'll do my best.", "next": "farewell", "action": "start_quest:collect_herbs,defeat_goblins" }
-      ]
-    },
-    "refuse_quest": {
-      "text": "That's a shame. We are in dire need of assistance. If you change your mind, come find me.",
-       "choices": [
-        { "text": "Farewell", "next": "farewell" }
-      ]
-    },
-     "quest_incomplete":{
-      "text": "Have you completed the task?",
-      "choices":[
-        {"text": "Not Yet", "next": "farewell"},
-        {"text": "Yes!", "next": "quest_complete_check"}
-      ]
-    },
-    "quest_complete_check":{
-      "text": "Let me see...",
-      "choices":[
-        {"text": "Continue", "next": "check_complete"}
-      ]
-    },
-      "quest_complete": {
-      "text": "You've done it! Thank you, brave adventurer. Here is your reward.",
-        "choices": [
-            { "text": "Thank you!", "next": "farewell", "action": "complete_quest:collect_herbs,defeat_goblins" }
-          ]
+  "start": "greeting",
+  "greeting": {
+    "text": "Welcome, traveler. Our village is beset by goblins. Will you help us?",
+    "choices": [
+      {
+        "text": "Yes, I'll help.",
+        "next": "accept_quest"
       },
-      "already_complete":{
-        "text": "You have already helped us, thank you!",
-        "choices":[
-          { "text": "Farewell", "next": "farewell" }
-        ]
-      },
-    "farewell": {
-      "text": "Farewell, traveler. May your journey be safe."
+      {
+        "text": "No, I'm too busy.",
+        "next": "refuse_quest"
+      }
+    ]
+  },
+  "accept_quest": {
+    "text": "Thank you! Please defeat 5 goblins in the nearby forest.",
+    "action": "start_quest:defeat_goblins",
+    "next": "farewell"
+  },
+  "refuse_quest": {
+    "text": "I understand. Perhaps another time, then.",
+    "next": "farewell"
+  },
+  "farewell": {
+    "text": "Farewell, traveler."
+  },
+
+  "quest_ongoing": {
+      "text": "Have you defeated those goblins yet?",
+      "choices": [
+          {
+              "text": "Not yet.",
+              "next": "farewell"
+          },
+          {
+             "text": "Yes, I have!",
+              "next": "quest_complete",
+              "condition": {
+                 "type": "quest_status",
+                  "quest_id": "defeat_goblins",
+                  "status": "complete"
+              }
+          }
+      ]
+  },
+  "quest_complete": {
+      "text": "You have saved our village!  Please, take this as a reward.",
+      "action": "complete_quest:defeat_goblins",
+      "next": "post_quest"
+  },
+    "post_quest": {
+      "text": "Thank you again for your help.  What will you do now?",
+      "choices": [
+        {
+          "text": "I'll continue exploring.",
+          "next": "farewell"
+        }
+      ]
     }
-  }
+
+}

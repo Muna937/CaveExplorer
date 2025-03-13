@@ -23,6 +23,7 @@
 #   - dialogue_screen.py: Dialogue choices can trigger quest actions via game.handle_dialogue_action().
 #   - save_load.py:  Needs to save and load the status of all quests (active, completed, objective progress).
 
+#quests.py
 import json
 from utils import load_json_data #import load json data
 class Quest:
@@ -36,6 +37,7 @@ class Quest:
         self.is_active = False
 
     def check_completion(self):
+        #Relevant to dialogue if quest completion is a dialogue condition.
         for objective in self.objectives:
             if not objective.is_complete:
                 return False
@@ -45,22 +47,14 @@ class Quest:
     def complete_quest(self, game): # Added game parameter
         if self.is_complete:
             print(f"Quest '{self.name}' completed!")
-            # Give rewards (now handles multiple items and experience)
-            game.player.add_gold(self.rewards.get("gold", 0))
-            game.player.experience += self.rewards.get("experience", 0)  # Add experience
-            for item_id, quantity in self.rewards.get("items", {}).items():  # Iterate through items
-                for _ in range(quantity): #add correct number of items.
-                  item_data = game.items_data.get(item_id)
-                  if item_data:
-                    game.player.inventory.add_item(item_data.copy())  # Add a *copy* of the item data
-                  else:
-                    print(f"Error: Item ID '{item_id}' not found in items_data.")
+            #Removed reward logic
 
     def start_quest(self):
         self.is_active = True
         print(f'Quest: "{self.name}" started!')
 
     def update(self, game):
+        #Indirectly relevant, as dialogue may trigger quest updates
         if self.is_active:
             for objective in self.objectives:
                 objective.update(game)
@@ -76,12 +70,11 @@ class Objective:
         self.is_complete = False
 
     def update(self, game):
+        #Indirectly related as this updates quest status
         if self.type == "kill":
-            # Get kill count from Game instance (requires adding a method to Game)
             self.current_amount = game.get_kill_count(self.target)
 
         elif self.type == "collect":
-            # Count items in inventory directly
             self.current_amount = game.player.inventory.count_item(self.target)
 
         elif self.type == "reach":
@@ -92,10 +85,10 @@ class Objective:
             self.is_complete = True
 
 def load_quests(filepath, items_data):
-    """Loads quest data from a JSON file."""
+    #Relevant as dialogue triggers quest start/completion.
     quests_data, error_msg = load_json_data(filepath)
     if error_msg:
-        print(error_msg)  # Handle the error appropriately
+        print(error_msg)
         return {}
 
     quests = {}

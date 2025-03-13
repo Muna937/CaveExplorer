@@ -43,148 +43,149 @@ from kivy.clock import Clock
 from kivy.core.window import Window
 from kivy.app import App
 
+#ui/screens/game_screen.py
 class GameScreen(Screen):
-    def __init__(self, game, **kwargs):
-        super().__init__(**kwargs)
-        self.game = game
-        self.tile_widgets = {}  # Store references to tile widgets.  Key: (col, row)
+        def __init__(self, game, **kwargs):
+            super().__init__(**kwargs)
+            self.game = game
+            self.tile_widgets = {}  # Store references to tile widgets.  Key: (col, row)
 
-        # --- UI Setup ---
-        self.layout = BoxLayout(orientation='vertical')
+            # --- UI Setup ---
+            self.layout = BoxLayout(orientation='vertical')
 
-        # --- Map Display (RelativeLayout) ---
-        self.map_view = RelativeLayout(size_hint=(None, None))  # Use RelativeLayout
-        self.map_view.width = self.game.world.map_data['width'] * self.game.world.tile_size
-        self.map_view.height = self.game.world.map_data['height'] * self.game.world.tile_size
-
-
-        # --- Tile Layer (GridLayout) ---
-        self.tile_layer = GridLayout(cols=self.game.world.map_data['width'],
-                                     rows=self.game.world.map_data['height'],
-                                     size_hint=(None, None),
-                                     size=(self.map_view.width, self.map_view.height))
-        self.map_view.add_widget(self.tile_layer) #add to relative layout
-
-        # --- Entity Layer (RelativeLayout) ---
-        self.entity_layer = RelativeLayout(size_hint=(None, None),
-                                          size=(self.map_view.width, self.map_view.height))
-        self.map_view.add_widget(self.entity_layer)  # Add *after* tile_layer
-
-        # --- Create Player Image HERE, in __init__ ---
-        self.player_image = Image(source="assets/images/player.png",
-                                  size=(self.game.world.tile_size, self.game.world.tile_size),
-                                  size_hint=(None, None))
-        self.entity_layer.add_widget(self.player_image)  # Add to entity_layer
-        self.player_image.bind(texture=self.on_player_texture)
-        self.layout.add_widget(self.map_view)
-
-        # --- UI Setup (Buttons for menus) ---
-        self.ui_layout = BoxLayout(orientation='horizontal', size_hint=(1, None), height=40)
-        self.inventory_button = Button(text="Inventory")
-        self.inventory_button.bind(on_press=self.go_to_inventory)
-        self.character_button = Button(text="Character")
-        self.character_button.bind(on_press=self.go_to_character)
-        self.ui_layout.add_widget(self.inventory_button)
-        self.ui_layout.add_widget(self.character_button)
-        self.layout.add_widget(self.ui_layout)
-        self.add_widget(self.layout)
+            # --- Map Display (RelativeLayout) ---
+            self.map_view = RelativeLayout(size_hint=(None, None))  # Use RelativeLayout
+            self.map_view.width = self.game.world.map_data['width'] * self.game.world.tile_size
+            self.map_view.height = self.game.world.map_data['height'] * self.game.world.tile_size
 
 
-        Clock.schedule_interval(self.update, 1.0 / 60.0)
-        # --- Lists to hold entity images ---
-        self.npc_images = {}
-        self.monster_images = {}
-        self.item_images = {}
+            # --- Tile Layer (GridLayout) ---
+            self.tile_layer = GridLayout(cols=self.game.world.map_data['width'],
+                                        rows=self.game.world.map_data['height'],
+                                        size_hint=(None, None),
+                                        size=(self.map_view.width, self.map_view.height))
+            self.map_view.add_widget(self.tile_layer) #add to relative layout
 
-    def on_enter(self):
-        self.render_map()  # Render tiles *first*
-        self.render_entities() # Then render entities
-        self.game.player.x = 5  # Example starting position
-        self.game.player.y = 5
+            # --- Entity Layer (RelativeLayout) ---
+            self.entity_layer = RelativeLayout(size_hint=(None, None),
+                                            size=(self.map_view.width, self.map_view.height))
+            self.map_view.add_widget(self.entity_layer)  # Add *after* tile_layer
 
-    def update(self, dt):
-        self.game.update(dt)  # Update the game logic (player movement, NPC AI, etc.).
-        #self.render_map()  # Re-render the map every frame. NO LONGER NEEDED
-        self.render_entities() # Re-render entities every frame
-        #self.label.text = f'Player X: {self.game.player.x}, Y: {self.game.player.y}' #Remove
+            # --- Create Player Image HERE, in __init__ ---
+            self.player_image = Image(source="assets/images/player.png",
+                                      size=(self.game.world.tile_size, self.game.world.tile_size),
+                                      size_hint=(None, None))
+            self.entity_layer.add_widget(self.player_image)  # Add to entity_layer
+            self.player_image.bind(texture=self.on_player_texture)
+            self.layout.add_widget(self.map_view)
 
-    def go_to_inventory(self, instance):
-        self.manager.current = "inventory" # Switch to Inventory Screen
-
-    def go_to_character(self, instance):
-        self.manager.current = "character"  # Switch to character screen
-
-    def render_map(self):
-        # self.map_view.clear_widgets() # No longer clear the whole map_view
-        self.tile_layer.clear_widgets()  # Clear *only* the tile_layer
-        self.tile_widgets.clear()
-
-        for row_index, tile_row in enumerate(self.game.world.tiles):
-            for col_index, tile in enumerate(tile_row):
-                tile_widget = Image(
-                    source=tile.image_path,
-                    size=(self.game.world.tile_size, self.game.world.tile_size),
-                    size_hint=(None, None),
-                    pos=(col_index * self.game.world.tile_size, row_index * self.game.world.tile_size)  # Absolute positioning
-                )
-                self.tile_layer.add_widget(tile_widget)  # Add to tile_layer
-                self.tile_widgets[(col_index, row_index)] = tile_widget
+            # --- UI Setup (Buttons for menus) ---
+            self.ui_layout = BoxLayout(orientation='horizontal', size_hint=(1, None), height=40)
+            self.inventory_button = Button(text="Inventory")
+            self.inventory_button.bind(on_press=self.go_to_inventory)
+            self.character_button = Button(text="Character")
+            self.character_button.bind(on_press=self.go_to_character)
+            self.ui_layout.add_widget(self.inventory_button)
+            self.ui_layout.add_widget(self.character_button)
+            self.layout.add_widget(self.ui_layout)
+            self.add_widget(self.layout)
 
 
-    def render_entities(self):
+            Clock.schedule_interval(self.update, 1.0 / 60.0)
+            # --- Lists to hold entity images ---
+            self.npc_images = {}
+            self.monster_images = {} # Now a dictionary! Key is the *Monster instance*
+            self.item_images = {}
 
-      # Render Player
-      # Calculate player position on screen based on tile size.  NO LONGER conditional.
-      self.update_player_position()
+        def on_enter(self):
+            self.render_map()  # Render tiles *first*
+            self.render_entities() # Then render entities
+            self.game.player.x = 5  # Example starting position
+            self.game.player.y = 5
+
+        def update(self, dt):
+            self.game.update(dt)  # Update the game logic (player movement, NPC AI, etc.).
+            #self.render_map()  # Re-render the map every frame. NO LONGER NEEDED
+            self.render_entities() # Re-render entities every frame
+            #self.label.text = f'Player X: {self.game.player.x}, Y: {self.game.player.y}' #Remove
+
+        def go_to_inventory(self, instance):
+            self.manager.current = "inventory" # Switch to Inventory Screen
+
+        def go_to_character(self, instance):
+            self.manager.current = "character"  # Switch to character screen
+
+        def render_map(self):
+            # self.map_view.clear_widgets() # No longer clear the whole map_view
+            self.tile_layer.clear_widgets()  # Clear *only* the tile_layer
+            self.tile_widgets.clear()
+
+            for row_index, tile_row in enumerate(self.game.world.tiles):
+                for col_index, tile in enumerate(tile_row):
+                    tile_widget = Image(
+                        source=tile.image_path,
+                        size=(self.game.world.tile_size, self.game.world.tile_size),
+                        size_hint=(None, None),
+                        pos=(col_index * self.game.world.tile_size, row_index * self.game.world.tile_size)  # Absolute positioning
+                    )
+                    self.tile_layer.add_widget(tile_widget)  # Add to tile_layer
+                    self.tile_widgets[(col_index, row_index)] = tile_widget
 
 
-      # --- NPCs ---
-      for npc_id, npc in self.game.world.npcs.items():
-          npc_screen_x = npc.x * self.game.world.tile_size
-          npc_screen_y = npc.y * self.game.world.tile_size
-          #check if exists
-          if npc_id not in self.npc_images: #create if it doesn't
-              npc_image = Image(source="assets/images/npcs/old_man.png",  # Replace with npc.sprite
-                                  size=(self.game.world.tile_size, self.game.world.tile_size),
-                                  size_hint=(None, None))
-              self.npc_images[npc_id] = npc_image
-              self.entity_layer.add_widget(npc_image)  # Add to entity_layer
-          self.npc_images[npc_id].pos = (npc_screen_x, npc_screen_y) #set pos
+        def render_entities(self):
 
-        # --- Monsters ---
-      for monster in self.game.world.monsters:
-          monster_screen_x = monster.x * self.game.world.tile_size
-          monster_screen_y = monster.y * self.game.world.tile_size
+          # Render Player
+          # Calculate player position on screen based on tile size.  NO LONGER conditional.
+          self.update_player_position()
 
-          if monster not in self.monster_images:
-              monster_image = Image(source=monster.sprite,
-                                  size=(self.game.world.tile_size, self.game.world.tile_size),
-                                  size_hint=(None, None))
-              self.monster_images[monster] = monster_image
-              self.entity_layer.add_widget(monster_image) #add to entity layer
-          self.monster_images[monster].pos = (monster_screen_x, monster_screen_y)
 
-       #Render Items
-      for item in self.game.world.items:
-        item_screen_x = item.x * self.game.world.tile_size
-        item_screen_y = item.y * self.game.world.tile_size
+          # --- NPCs ---
+          for npc_id, npc in self.game.world.npcs.items():
+              npc_screen_x = npc.x * self.game.world.tile_size
+              npc_screen_y = npc.y * self.game.world.tile_size
+              #check if exists
+              if npc_id not in self.npc_images: #create if it doesn't
+                  npc_image = Image(source="assets/images/npcs/old_man.png",  # Replace with npc.sprite
+                                      size=(self.game.world.tile_size, self.game.world.tile_size),
+                                      size_hint=(None, None))
+                  self.npc_images[npc_id] = npc_image
+                  self.entity_layer.add_widget(npc_image)  # Add to entity_layer
+              self.npc_images[npc_id].pos = (npc_screen_x, npc_screen_y) #set pos
 
-        if item not in self.item_images:
-          item_image = Image(source = item.icon,
-                            size = (self.game.world.tile_size, self.game.world.tile_size),
-                            size_hint = (None, None))
-          self.item_images[item] = item_image
-          self.entity_layer.add_widget(item_image) #add to entity layer.
-        self.item_images[item].pos = (item_screen_x, item_screen_y)
+            # --- Monsters ---
+          for monster in self.game.world.monsters:
+              monster_screen_x = monster.x * self.game.world.tile_size
+              monster_screen_y = monster.y * self.game.world.tile_size
 
-    def on_player_texture(self, instance, value):
-        # This method is called when the player image's texture is updated.
-        if value:  # Make sure the texture is actually loaded
-            self.update_player_position()
+              if monster not in self.monster_images:
+                  monster_image = Image(source=monster.sprite,
+                                        size=(self.game.world.tile_size, self.game.world.tile_size),
+                                        size_hint=(None, None))
+                  self.monster_images[monster] = monster_image # Use monster as the key
+                  self.entity_layer.add_widget(monster_image)
+              self.monster_images[monster].pos = (monster_screen_x, monster_screen_y)
 
-    def update_player_position(self):
-        # This method now ONLY updates the position, and is called initially
-        # and AFTER the texture is loaded.
-        player_screen_x = self.game.player.x * self.game.world.tile_size
-        player_screen_y = self.game.player.y * self.game.world.tile_size
-        self.player_image.pos = (player_screen_x, player_screen_y)
+           #Render Items
+          for item in self.game.world.items:
+            item_screen_x = item.x * self.game.world.tile_size
+            item_screen_y = item.y * self.game.world.tile_size
+
+            if item not in self.item_images:
+              item_image = Image(source = item.icon,
+                                size = (self.game.world.tile_size, self.game.world.tile_size),
+                                size_hint = (None, None))
+              self.item_images[item] = item_image
+              self.entity_layer.add_widget(item_image) #add to entity layer.
+            self.item_images[item].pos = (item_screen_x, item_screen_y)
+
+        def on_player_texture(self, instance, value):
+            # This method is called when the player image's texture is updated.
+            if value:  # Make sure the texture is actually loaded
+                self.update_player_position()
+
+        def update_player_position(self):
+            # This method now ONLY updates the position, and is called initially
+            # and AFTER the texture is loaded.
+            player_screen_x = self.game.player.x * self.game.world.tile_size
+            player_screen_y = self.game.player.y * self.game.world.tile_size
+            self.player_image.pos = (player_screen_x, player_screen_y)

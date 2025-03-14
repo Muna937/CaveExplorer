@@ -2,6 +2,19 @@ import pygame
 import random
 import os
 import sys
+import json
+
+GAME_DIRECTORY = os.path.dirname(os.path.abspath(__file__))
+SAVE_DIRECTORY = os.path.join(GAME_DIRECTORY, "saves")
+SAVE_FILENAME = "player_save.json"
+
+# Create the save directory if it doesn't exist
+if not os.path.exists(SAVE_DIRECTORY):
+    os.makedirs(SAVE_DIRECTORY)
+
+# Create the save directory if it doesn't exist
+if not os.path.exists(SAVE_DIRECTORY):
+    os.makedirs(SAVE_DIRECTORY)
 
 def resource_path(relative_path):
     try:
@@ -28,9 +41,9 @@ BROWN = (139, 69, 19)  # SaddleBrown
 # --- Screen Setup ---
 screen = pygame.display.set_mode((SCREEN_WIDTH , SCREEN_HEIGHT))
 pygame.display.set_caption("Dungeon Crawler")
-image_path = resource_path("images/town.png") # Use resource_path
+image_path = resource_path("CaveExplorer4/images/town.png") # Use resource_path
 town_bg_image = pygame.image.load(image_path)
-image_path = resource_path("images/tavern.png") # Use resource_path
+image_path = resource_path("CaveExplorer4/images/tavern.png") # Use resource_path
 tavern_bg_image = pygame.image.load(image_path)
 # --- Fonts ---
 TITLE_FONT = pygame.font.Font("freesansbold.ttf", 64)
@@ -54,7 +67,7 @@ OPTIONS_BUTTON_RECT = pygame.Rect(MENU_BUTTON_X, MENU_BUTTON_Y + MENU_BUTTON_HEI
 QUIT_BUTTON_RECT = pygame.Rect(MENU_BUTTON_X + MENU_BUTTON_WIDTH + MENU_BUTTON_X_SPACING, MENU_BUTTON_Y + MENU_BUTTON_HEIGHT + MENU_BUTTON_SPACING, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)
 NEW_GAME_TEXT = BUTTON_FONT.render("New Game", True, BLACK)
 LOAD_GAME_TEXT = BUTTON_FONT.render("Load Game", True, BLACK)
-OPTIONS_TEXT = BUTTON_FONT.render("Options", True, BLACK)
+OPTIONS_TEXT = BUTTON_FONT.render("Save Game", True, BLACK)
 QUIT_TEXT = BUTTON_FONT.render("Quit", True, BLACK)
 RETRY_BUTTON_RECT = pygame.Rect(SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 50, 200, 50) # Centered below "Game Over" text
 OUTLINE_COLOR = BLACK  # Define outline color globally
@@ -231,7 +244,7 @@ INVENTORY_SLOTS_PER_ROW = 1 # One item per row
 INVENTORY_ROWS = 4  # Display 4 items at a time
 INVENTORY_START_X = INVENTORY_DISPLAY_X + 20
 INVENTORY_START_Y = INVENTORY_DISPLAY_Y + 30 # Start below tabs.
-INVENTORY_CAPACITY = INVENTORY_SLOTS_PER_ROW * INVENTORY_ROWS #max visible, not max capacity
+INVENTORY_CAPACITY = 25 # max capacity
 
 # --- Inventory Scrolling (Similar to Shop Scrolling) ---
 inventory_scroll_offset = 0
@@ -306,6 +319,36 @@ class Player:
             "ring1": None,
             "ring2": None,
         }
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "class_name": self.class_name,
+            "stats": self.stats,
+            "current_health": self.current_health,
+            "current_mana": self.current_mana,
+            "level": self.level,
+            "experience": self.experience,
+            "inventory": self.inventory,
+            "coins": self.coins,
+            "max_experience": self.max_experience,
+            "buffs": self.buffs,
+            "equipment": self.equipment
+        }
+    @classmethod
+    def from_dict(cls, data):
+        player = cls(data["name"], data["class_name"])
+        player.stats = data["stats"]
+        player.current_health = data["current_health"]
+        player.current_mana = data["current_mana"]
+        player.level = data["level"]
+        player.experience = data["experience"]
+        player.inventory = data["inventory"]
+        player.coins = data["coins"]
+        player.max_experience = data["max_experience"]
+        player.buffs = data["buffs"]
+        player.equipment = data["equipment"]
+        return player
+    
     def calculate_damage(self):
         """Calculates the damage for an attack, considering a range and buffs."""
         base_attack_range = self.stats['attack']
@@ -790,6 +833,31 @@ CLASS_ABILITIES = {
         },
     ],
 }
+def save_game_data(player, filename=SAVE_FILENAME):
+    """Saves player data to a JSON file in the save directory."""
+    try:
+        filepath = os.path.join(SAVE_DIRECTORY, filename) # create the full file path.
+        player_dict = player.to_dict()
+        with open(filepath, "w") as f:
+            json.dump(player_dict, f, indent=4)
+        print(f"Player data saved to {filepath}")
+    except Exception as e:
+        print(f"Error saving player data: {e}")
+
+def load_game_data(filename=SAVE_FILENAME):
+    """Loads player data from a JSON file in the save directory."""
+    try:
+        filepath = os.path.join(SAVE_DIRECTORY, filename) # create the full file path.
+        with open(filepath, "r") as f:
+            player_dict = json.load(f)
+        print(f"Player data loaded from {filepath}")
+        return Player.from_dict(player_dict)
+    except FileNotFoundError:
+        print(f"Save file {filename} not found in {SAVE_DIRECTORY}.")
+        return None
+    except Exception as e:
+        print(f"Error loading player data: {e}")
+        return None
 def generate_quest_list(num_quests=2):
     """Generates a list of quests to be offered to the player."""
     return random.sample(QUEST_DATA, num_quests)
@@ -1168,7 +1236,10 @@ class Monster:
                 chosen_ability = random.choice(ability_choices)
                 return chosen_ability
         return None
-
+    def drop_loot(self):
+        """Simulates a monster dropping a random item from the loot table."""
+        return random.choice(LOOT_TABLE)
+    
     def use_ability(self, ability, target):
         ability_name = ability['name']
         if ability['type'] == 'attack':
@@ -1381,7 +1452,7 @@ monster_data = {
         "accuracy": 65,
         "evasion": 20,
         "monster_type": "Greenskin",
-        "image_path": "images/Goblin.png",
+        "image_path": "CaveExplorer4/images/Goblin.png",
         "attack_sound_path": "sounds/goblin_attack.wav",
         "abilities": ["Goblin Abilities"]
     },
@@ -1398,7 +1469,7 @@ monster_data = {
         "accuracy": 75,
         "evasion": 30,
         "monster_type": "Beast",
-        "image_path": "images/rat.png",
+        "image_path": "CaveExplorer4/images/rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
         "abilities": []
     },
@@ -1415,7 +1486,7 @@ monster_data = {
         "accuracy": 70,
         "evasion": 27,
         "monster_type": "Beast",
-        "image_path": "images/bigrat.png",
+        "image_path": "CaveExplorer4/images/bigrat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
         "abilities": []
     },
@@ -1432,7 +1503,7 @@ monster_data = {
         "accuracy": 70,
         "evasion": 45,
         "monster_type": "Beast",
-        "image_path": "images/spider.png",
+        "image_path": "CaveExplorer4/images/spider.png",
         "attack_sound_path": "sounds/spider_attack.wav",
         "abilities": []
     },
@@ -1449,7 +1520,7 @@ monster_data = {
         "accuracy": 80,
         "evasion": 15,
         "monster_type": "Undead",
-        "image_path": "images/skeleton_warrior.png",
+        "image_path": "CaveExplorer4/images/skeleton_warrior.png",
         "attack_sound_path": "sounds/skeleton_attack.wav",
         "abilities": []
     },
@@ -1466,7 +1537,7 @@ monster_data = {
         "accuracy": 80,
         "evasion": 30,
         "monster_type": "Beast",
-        "image_path": "images/giant_rat.png",
+        "image_path": "CaveExplorer4/images/giant_rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
         "abilities": []
     },
@@ -1483,7 +1554,7 @@ monster_data = {
         "accuracy": 90,
         "evasion": 35,
         "monster_type": "Fey",
-        "image_path": "images/siren.png",
+        "image_path": "CaveExplorer4/images/siren.png",
         "attack_sound_path": "sounds/siren_attack.wav",
         "abilities": []
     },
@@ -1500,7 +1571,7 @@ monster_data = {
         "accuracy": 75,
         "evasion": 20,
         "monster_type": "Construct",
-        "image_path": "images/mimic.png",
+        "image_path": "CaveExplorer4/images/mimic.png",
         "attack_sound_path": "sounds/mimic_attack.wav",
         "abilities": []
     },
@@ -1517,7 +1588,7 @@ monster_data = {
         "accuracy": 85,
         "evasion": 15,
         "monster_type": "Greenskin",
-        "image_path": "images/orc.png",
+        "image_path": "CaveExplorer4/images/orc.png",
         "attack_sound_path": "sounds/orc_attack.wav",
         "abilities": ["Orc Abilities"]
     },
@@ -1534,7 +1605,7 @@ monster_data = {
         "accuracy": 85,
         "evasion": 45,
         "monster_type": "Fiend",
-        "image_path": "images/succubus.png",
+        "image_path": "CaveExplorer4/images/succubus.png",
         "attack_sound_path": "sounds/succubus_charm.wav",
         "abilities": []
     },
@@ -1551,7 +1622,7 @@ monster_data = {
         "accuracy": 95,
         "evasion": 20,
         "monster_type": "Undead",
-        "image_path": "images/lich.png",
+        "image_path": "CaveExplorer4/images/lich.png",
         "attack_sound_path": "sounds/lich_attack.wav",
         "abilities": []
     },
@@ -1568,7 +1639,7 @@ monster_data = {
         "accuracy": 95,
         "evasion": 35,
         "monster_type": "Dragon",
-        "image_path": "images/dragon.png",
+        "image_path": "CaveExplorer4/images/dragon.png",
         "attack_sound_path": "sounds/dragon_roar.wav",
         "abilities": []
     }
@@ -1932,34 +2003,37 @@ shop_items_data = {
      "misc_023": {"name": "Empty Vial", "category": "Misc", "price": 3, "equip_slot":None, "effect": {"type": "utility", "use": "collect_liquid"}, "image_path": "images/items/misc/misc_023.png", "description":"Used for storing liquids"},
     "misc_024": {"name": "Magnifying Glass", "category": "Misc", "price": 12, "equip_slot": None, "effect":{"type": "utility", "use":"examine"}, "image_path": "images/items/misc/misc_024.png", "description": "For close inspection."},
     "misc_025": {"name": "Whistle", "category": "Misc", "price": 2, "equip_slot": None, "effect": {"type": "utility", "use": "signal"}, "image_path": "images/items/misc/misc_025.png", "description": "Makes a loud noise."},
-    # --- Add Loot Items to shop_items_data (Example) ---
-    "loot_001": {"name": "Rat Tail", "category": "Loot", "price": 2, "equip_slot": None, "image_path": "images/items/loot/loot_001.png", "description": "A severed rat tail. Not very valuable."},
-    "loot_002": {"name": "Goblin Tooth", "category": "Loot", "price": 5, "equip_slot": None, "image_path": "images/items/loot/loot_002.png", "description": "A chipped goblin tooth."},
-    "loot_003": {"name": "Spider Silk", "category": "Loot", "price": 8, "equip_slot": None, "image_path": "images/items/loot/loot_003.png", "description": "A surprisingly strong strand of spider silk."},
-    "loot_004": {"name": "Broken Bone", "category": "Loot", "price": 3, "equip_slot": None, "image_path": "images/items/loot/loot_004.png", "description": "A brittle, broken bone. Probably from a skeleton."},
-    "loot_005": {"name": "Torn Cloth", "category": "Loot", "price": 1, "equip_slot": None, "image_path": "images/items/loot/loot_005.png", "description": "A scrap of dirty cloth."},
-    "loot_006": {"name": "Small Gemstone", "category": "Loot", "price": 25, "equip_slot": None, "image_path": "images/items/loot/loot_006.png", "description": "A small, uncut gemstone."},
-    "loot_007": {"name": "Silver Ring", "category": "Loot", "price": 35, "equip_slot": None, "image_path": "images/items/loot/loot_007.png", "description": "A tarnished silver ring."},
-     "loot_008": {"name": "Gold Necklace", "category": "Loot", "price": 50, "equip_slot": None, "image_path": "images/items/loot/loot_008.png", "description":"Small but valuable"},
-    "loot_009": {"name": "Orcish Battle Totem", "category": "Loot", "price": 15, "equip_slot": None, "image_path": "images/items/loot/loot_009.png", "description":"An odd token"},
-    "loot_010": {"name": "Dragon Scale", "category": "Loot", "price": 100, "equip_slot": None, "image_path": "images/items/loot/loot_010.png", "description":"Extremely Rare"},
-    "loot_011": {"name": "Ancient Coin", "category": "Loot", "price": 18, "equip_slot": None, "image_path": "images/items/loot/loot_011.png", "description":"Old but could be valuable"},
-    "loot_012": {"name": "Shiny Rock", "category": "Loot", "price": 5, "equip_slot": None, "image_path": "images/items/loot/loot_012.png", "description":"Shiny!"},
-    "loot_013": {"name": "Goblin Ear", "category": "Loot", "price": 4, "equip_slot": None, "image_path": "images/items/loot/loot_013.png", "description":"Proof of a kill"},
-    "loot_014": {"name": "Skeleton Bone", "category": "Loot", "price": 2, "equip_slot": None, "image_path": "images/items/loot/loot_014.png", "description":"Part of a skeleton"},
-    "loot_015": {"name": "Spider Leg", "category": "Loot", "price": 6, "equip_slot": None, "image_path": "images/items/loot/loot_015.png", "description":"A leg from a giant spider"},
-     "loot_016": {"name": "Vial of Slime", "category": "Loot", "price": 3, "equip_slot": None, "image_path": "images/items/loot/loot_016.png", "description":"Gooey..."},
-    "loot_017": {"name": "Bat Wing", "category": "Loot", "price": 5, "equip_slot": None, "image_path": "images/items/loot/loot_017.png", "description":"From a giant bat"},
-    "loot_018": {"name": "Wolf Pelt", "category": "Loot", "price": 12, "equip_slot": None, "image_path": "images/items/loot/loot_018.png", "description":"Soft Fur"},
-    "loot_019": {"name": "Bear Claw", "category": "Loot", "price": 14, "equip_slot": None, "image_path": "images/items/loot/loot_019.png", "description":"Sharp and dangerous"},
-    "loot_020": {"name": "Snake Skin", "category": "Loot", "price": 10, "equip_slot": None, "image_path": "images/items/loot/loot_020.png", "description":"Shedded Skin"},
-    "loot_021": {"name": "Feather", "category": "Loot", "price": 1, "equip_slot": None, "image_path": "images/items/loot/loot_021.png", "description":"A colourful feather"},
-    "loot_022": {"name": "Troll Hair", "category": "Loot", "price": 8, "equip_slot": None, "image_path": "images/items/loot/loot_022.png", "description":"Coarse and smelly."},
-    "loot_023": {"name": "Mushroom", "category": "Loot", "price": 3, "equip_slot": None, "image_path": "images/items/loot/loot_023.png", "description":"Is it edible?"},
-     "loot_024": {"name": "Crystal Shard", "category": "Loot", "price": 22, "equip_slot": None, "image_path": "images/items/loot/loot_024.png", "description":"Sparkling with energy"},
-    "loot_025": {"name": "Ancient Scroll", "category": "Loot", "price": 45, "equip_slot": None, "image_path": "images/items/loot/loot_025.png", "description":"Could be a valuable find"},
-
 }
+LOOT_TABLE_DATA = {
+    "loot_001": {"name": "Rat Tail", "category": "misc", "price": 2, "equip_slot": None, "image_path": "images/items/loot/loot_001.png", "description": "A severed rat tail. Not very valuable."},
+    "loot_002": {"name": "Goblin Tooth", "category": "misc", "price": 5, "equip_slot": None, "image_path": "images/items/loot/loot_002.png", "description": "A chipped goblin tooth."},
+    "loot_003": {"name": "Spider Silk", "category": "misc", "price": 8, "equip_slot": None, "image_path": "images/items/loot/loot_003.png", "description": "A surprisingly strong strand of spider silk."},
+    "loot_004": {"name": "Broken Bone", "category": "misc", "price": 3, "equip_slot": None, "image_path": "images/items/loot/loot_004.png", "description": "A brittle, broken bone. Probably from a skeleton."},
+    "loot_005": {"name": "Torn Cloth", "category": "misc", "price": 1, "equip_slot": None, "image_path": "images/items/loot/loot_005.png", "description": "A scrap of dirty cloth."},
+    "loot_006": {"name": "Small Gemstone", "category": "misc", "price": 25, "equip_slot": None, "image_path": "images/items/loot/loot_006.png", "description": "A small, uncut gemstone."},
+    "loot_007": {"name": "Silver Ring", "category": "misc", "price": 35, "equip_slot": None, "image_path": "images/items/loot/loot_007.png", "description": "A tarnished silver ring."},
+    "loot_008": {"name": "Gold Necklace", "category": "misc", "price": 50, "equip_slot": None, "image_path": "images/items/loot/loot_008.png", "description": "Small but valuable"},
+    "loot_009": {"name": "Orcish Battle Totem", "category": "misc", "price": 15, "equip_slot": None, "image_path": "images/items/loot/loot_009.png", "description": "An odd token"},
+    "loot_010": {"name": "Dragon Scale", "category": "misc", "price": 100, "equip_slot": None, "image_path": "images/items/loot/loot_010.png", "description": "Extremely Rare"},
+    "loot_011": {"name": "Ancient Coin", "category": "misc", "price": 18, "equip_slot": None, "image_path": "images/items/loot/loot_011.png", "description": "Old but could be valuable"},
+    "loot_012": {"name": "Shiny Rock", "category": "misc", "price": 5, "equip_slot": None, "image_path": "images/items/loot/loot_012.png", "description": "Shiny!"},
+    "loot_013": {"name": "Goblin Ear", "category": "misc", "price": 4, "equip_slot": None, "image_path": "images/items/loot/loot_013.png", "description": "Proof of a kill"},
+    "loot_014": {"name": "Skeleton Bone", "category": "misc", "price": 2, "equip_slot": None, "image_path": "images/items/loot/loot_014.png", "description": "Part of a skeleton"},
+    "loot_015": {"name": "Spider Leg", "category": "misc", "price": 6, "equip_slot": None, "image_path": "images/items/loot/loot_015.png", "description": "A leg from a giant spider"},
+    "loot_016": {"name": "Vial of Slime", "category": "misc", "price": 3, "equip_slot": None, "image_path": "images/items/loot/loot_016.png", "description": "Gooey..."},
+    "loot_017": {"name": "Bat Wing", "category": "misc", "price": 5, "equip_slot": None, "image_path": "images/items/loot/loot_017.png", "description": "From a giant bat"},
+    "loot_018": {"name": "Wolf Pelt", "category": "misc", "price": 12, "equip_slot": None, "image_path": "images/items/loot/loot_018.png", "description": "Soft Fur"},
+    "loot_019": {"name": "Bear Claw", "category": "misc", "price": 14, "equip_slot": None, "image_path": "images/items/loot/loot_019.png", "description": "Sharp and dangerous"},
+    "loot_020": {"name": "Snake Skin", "category": "misc", "price": 10, "equip_slot": None, "image_path": "images/items/loot/loot_020.png", "description": "Shedded Skin"},
+    "loot_021": {"name": "Feather", "category": "misc", "price": 1, "equip_slot": None, "image_path": "images/items/loot/loot_021.png", "description": "A colourful feather"},
+    "loot_022": {"name": "Troll Hair", "category": "misc", "price": 8, "equip_slot": None, "image_path": "images/items/loot/loot_022.png", "description": "Coarse and smelly."},
+    "loot_023": {"name": "Mushroom", "category": "misc", "price": 3, "equip_slot": None, "image_path": "images/items/loot/loot_023.png", "description": "Is it edible?"},
+    "loot_024": {"name": "Crystal Shard", "category": "misc", "price": 22, "equip_slot": None, "image_path": "images/items/loot/loot_024.png", "description": "Sparkling with energy"},
+    "loot_025": {"name": "Ancient Scroll", "category": "misc", "price": 45, "equip_slot": None, "image_path": "images/items/loot/loot_025.png", "description": "Could be a valuable find"}
+}
+
+LOOT_TABLE = list(LOOT_TABLE_DATA.values())
+
 #MONSTER CREATION
 def create_monster(monster_name, roomlvl): # Added roomlvl parameter
     if monster_name in monster_data:
@@ -2923,17 +2997,26 @@ def handle_menu():
     screen.blit(OPTIONS_TEXT, OPTIONS_TEXT.get_rect(center=OPTIONS_BUTTON_RECT.center))
     screen.blit(QUIT_TEXT, QUIT_TEXT.get_rect(center=QUIT_BUTTON_RECT.center))
 def handle_menu_events(events):
-    global CURRENT_STATE
-    mouse_pos = pygame.mouse.get_pos() # Get mouse position outside the event loop for general mouse pos
-    for event in events: # Iterate through events - IMPORTANT for proper event handling
-        if event.type == pygame.MOUSEBUTTONDOWN: # Check for mouse button press event (click)
+    global CURRENT_STATE, player # Use the global player variable
+    mouse_pos = pygame.mouse.get_pos()
+    for event in events:
+        if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
-                if NEW_GAME_BUTTON_RECT.collidepoint(event.pos): # Use event.pos for click position
+                if NEW_GAME_BUTTON_RECT.collidepoint(event.pos):
                     CURRENT_STATE = CHARACTER_CREATION
                 elif LOAD_GAME_BUTTON_RECT.collidepoint(event.pos):
-                    print("Load Game Clicked")
+                    loaded_player = load_game_data()
+                    if loaded_player:
+                        player = loaded_player # Assign the loaded player
+                        CURRENT_STATE = TOWN
+                    else:
+                        print ("Load failed")
                 elif OPTIONS_BUTTON_RECT.collidepoint(event.pos):
-                    print("Options Clicked")
+                    if player:
+                        save_game_data(player)
+                    else:
+                        print("Player not created yet.")
+
                 elif QUIT_BUTTON_RECT.collidepoint(event.pos):
                     pygame.quit()
                     sys.exit()
@@ -3544,6 +3627,7 @@ def handle_dungeon():
     room_description = rooms[current_room_id]["description"]
     description_text_surface = SMALL_FONT.render(room_description, True, (200, 200, 200))
     screen.blit(description_text_surface, (10, 120)) #  <---- Adjust y-coordinate (120 is a starting point)
+    render_combat_log()
     render_status_bar() # Status bar rendering (assumed to be at the bottom)
 def handle_dungeon_events(events):
     global current_room_id, CURRENT_STATE,roomlvl,rooms
@@ -3713,6 +3797,11 @@ def handle_combat_events(events):
         player.gain_experience(current_enemy.get_experience())
         player.gain_coins(current_enemy.gold)
         message_text = (f"You gained {current_enemy.get_experience()} XP and {current_enemy.gold} coins.")
+        add_combat_message(message_text)
+                # --- Loot Drop Logic ---
+        dropped_item = current_enemy.drop_loot()
+        player.add_item_to_inventory(dropped_item)
+        message_text=(f"{player.name} obtained {dropped_item['name']}.")
         add_combat_message(message_text)
         CURRENT_STATE = DUNGEON
         current_enemy = None

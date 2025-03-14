@@ -1,0 +1,34 @@
+{
+    "name": "Jared",
+    "class_name": "Warrior",
+    "stats": {
+        "health": 50,
+        "mana": 20,
+        "attack": [
+            1,
+            7
+        ],
+        "defense": 5,
+        "accuracy": 80,
+        "evasion": 10
+    },
+    "current_health": 34,
+    "current_mana": 20,
+    "level": 1,
+    "experience": 40,
+    "inventory": [
+        "armor_001",
+        "potion_001"
+    ],
+    "coins": 481,
+    "max_experience": 100,
+    "buffs": [],
+    "equipment": {
+        "head": null,
+        "chest": null,
+        "main_hand": null,
+        "off_hand": null,
+        "ring1": null,
+        "ring2": null
+    }
+}

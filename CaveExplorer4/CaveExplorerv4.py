@@ -1471,7 +1471,7 @@ monster_data = {
         "monster_type": "Beast",
         "image_path": "CaveExplorer4/images/rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
-        "abilities": []
+        "abilities": ["Rat Abilities"]
     },
     "Big Rat": {
         "name": "Big Rat",
@@ -1488,7 +1488,7 @@ monster_data = {
         "monster_type": "Beast",
         "image_path": "CaveExplorer4/images/bigrat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
-        "abilities": []
+        "abilities": ["Big Rat Abilities"]
     },
     "Spider": {
         "name": "Spider",
@@ -1505,7 +1505,7 @@ monster_data = {
         "monster_type": "Beast",
         "image_path": "CaveExplorer4/images/spider.png",
         "attack_sound_path": "sounds/spider_attack.wav",
-        "abilities": []
+        "abilities": ["Spider Abilities"]
     },
     "Skeleton Warrior": {
         "name": "Skeleton Warrior",
@@ -1522,7 +1522,7 @@ monster_data = {
         "monster_type": "Undead",
         "image_path": "CaveExplorer4/images/skeleton_warrior.png",
         "attack_sound_path": "sounds/skeleton_attack.wav",
-        "abilities": []
+        "abilities": ["Skeleton Warrior Abilities"]
     },
     "Giant Rat": {
         "name": "Giant Rat",
@@ -1539,7 +1539,7 @@ monster_data = {
         "monster_type": "Beast",
         "image_path": "CaveExplorer4/images/giant_rat.png",
         "attack_sound_path": "sounds/rat_attack.wav",
-        "abilities": []
+        "abilities": ["Giant Rat Abilities"]
     },
     "Siren": {
         "name": "Siren",
@@ -1556,7 +1556,7 @@ monster_data = {
         "monster_type": "Fey",
         "image_path": "CaveExplorer4/images/siren.png",
         "attack_sound_path": "sounds/siren_attack.wav",
-        "abilities": []
+        "abilities": ["Siren Abilities"]
     },
     "Mimic": {
         "name": "Mimic",
@@ -1573,7 +1573,7 @@ monster_data = {
         "monster_type": "Construct",
         "image_path": "CaveExplorer4/images/mimic.png",
         "attack_sound_path": "sounds/mimic_attack.wav",
-        "abilities": []
+        "abilities": ["Mimic Abilities"]
     },
     "Orc": {
         "name": "Orc",
@@ -1607,7 +1607,7 @@ monster_data = {
         "monster_type": "Fiend",
         "image_path": "CaveExplorer4/images/succubus.png",
         "attack_sound_path": "sounds/succubus_charm.wav",
-        "abilities": []
+        "abilities": ["Succubus Abilities"]
     },
     "Lich": {
         "name": "Lich",
@@ -1624,7 +1624,7 @@ monster_data = {
         "monster_type": "Undead",
         "image_path": "CaveExplorer4/images/lich.png",
         "attack_sound_path": "sounds/lich_attack.wav",
-        "abilities": []
+        "abilities": ["Lich Abilities"]
     },
     "Dragon": {
         "name": "Dragon",
@@ -1641,7 +1641,7 @@ monster_data = {
         "monster_type": "Dragon",
         "image_path": "CaveExplorer4/images/dragon.png",
         "attack_sound_path": "sounds/dragon_roar.wav",
-        "abilities": []
+        "abilities": ["Dragon Abilities"]
     }
 }
 MONSTER_ABILITIES = {
